@@ -22,9 +22,6 @@ export function SubmitExerciseButton({ exerciseId, hasSubmitted }: SubmitExercis
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2 justify-end">
-        <Button type="button" variant="outline" className="min-h-11">
-          איפוס
-        </Button>
         <form action={formAction}>
           <input type="hidden" name="exercise_id" value={exerciseId} />
           <Button type="submit" disabled={isPending} className="min-h-11">

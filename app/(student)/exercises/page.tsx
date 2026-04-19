@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { DumbbellIcon, ChevronDownIcon, LockIcon, CheckCircleIcon } from "lucide-react";
+import { DumbbellIcon, LockIcon, CheckCircleIcon } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
@@ -76,7 +76,6 @@ export default async function ExercisesPage() {
                         נעול
                       </span>
                     )}
-                    <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                   </div>
                 </CardHeader>
 
