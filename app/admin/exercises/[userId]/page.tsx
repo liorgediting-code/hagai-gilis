@@ -15,8 +15,7 @@ interface AdminStudentExercisesPageProps {
 }
 
 function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  return new Date(iso).toLocaleString("he-IL", { dateStyle: "short", timeStyle: "short" });
 }
 
 export default async function AdminStudentExercisesPage({ params }: AdminStudentExercisesPageProps) {
@@ -56,7 +55,7 @@ export default async function AdminStudentExercisesPage({ params }: AdminStudent
     <div className="space-y-6">
       <div className="space-y-1">
         <Link href="/admin/exercises" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-          → חזרה להתקדמות תרגולים
+          ← חזרה להתקדמות תרגולים
         </Link>
         <h1 className="font-heading text-2xl font-bold text-foreground">
           {profile.full_name ?? "תלמיד"} — תרגולים
