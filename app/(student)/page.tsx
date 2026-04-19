@@ -4,7 +4,6 @@ import { BookOpenIcon, FileTextIcon, PlayCircleIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
 import { requireUser } from "@/lib/auth/require-user";
-import { buttonVariants } from "@/components/ui/button";
 import type { Tables } from "@/lib/types/database";
 import type { LessonRow, LessonProgressRow, UserPermissionRow } from "@/lib/types/course-types";
 
