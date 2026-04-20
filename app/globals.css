@@ -129,3 +129,10 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  /* iOS safe-area padding for bottom nav */
+  .pb-safe-area {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
