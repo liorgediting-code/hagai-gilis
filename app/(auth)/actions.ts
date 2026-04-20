@@ -214,6 +214,17 @@ export async function activateAccountAction(
     return { status: "error", error: "שגיאה בהגדרת הסיסמה — נסה שנית" };
   }
 
+  // Ensure profile row exists — trigger may not have fired if user was created outside the invite flow
+  await admin.from("profiles").upsert(
+    {
+      id: existing.id,
+      email: parsed.data.email,
+      full_name: (existing.user_metadata?.full_name as string | undefined) ?? null,
+      role: "student",
+    },
+    { onConflict: "id", ignoreDuplicates: true },
+  );
+
   // Sign in automatically with the new password
   const supabase = await createClient();
   await supabase.auth.signInWithPassword({
