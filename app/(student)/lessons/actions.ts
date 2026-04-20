@@ -49,7 +49,7 @@ export async function saveLessonProgressAction(
 
   if (error) {
     console.error("[saveLessonProgressAction]", error);
-    return { status: "error", error: `DB error: ${error.message}` };
+    return { status: "error", error: "שגיאה בשמירת ההתקדמות — נסה שנית" };
   }
 
   revalidatePath(`/lessons/${parsed.data.lesson_id}`);
