@@ -17,34 +17,27 @@ export default async function StudentLayout({ children }: { children: ReactNode 
   } = await supabase.auth.getUser();
 
   // Redirect admins to admin panel; unauthenticated users see content freely while auth is disabled.
+  // Fetch profile (role + name) and permissions in parallel — one round-trip instead of three.
+  let name: string | null = null;
+  const denied = new Set<string>();
+
   if (user) {
-    const { data: profile } = (await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single()) as { data: { role: string } | null; error: unknown };
+    const [{ data: profile }, { data: deniedRows }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("role, full_name")
+        .eq("id", user.id)
+        .single() as unknown as Promise<{ data: { role: string; full_name: string | null } | null }>,
+      asUntyped(supabase)
+        .from("user_permissions")
+        .select("page")
+        .eq("user_id", user.id) as unknown as Promise<{ data: UserPermissionRow[] | null }>,
+    ]);
 
     if (profile?.role === "admin") redirect("/admin");
-  }
-
-  const denied = new Set<string>();
-  if (user) {
-    const { data: deniedRows } = (await asUntyped(supabase)
-      .from("user_permissions")
-      .select("page")
-      .eq("user_id", user.id)) as { data: UserPermissionRow[] | null; error: unknown };
+    name = profile?.full_name ?? null;
     (deniedRows ?? []).forEach((r) => denied.add(r.page));
   }
-
-  const name = user
-    ? (
-        (await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", user.id)
-          .single()) as { data: { full_name: string | null } | null; error: unknown }
-      ).data?.full_name
-    : null;
 
   const deniedList = Array.from(denied);
 
