@@ -11,6 +11,7 @@ import type { ExerciseSubmissionRow } from "@/lib/types/course-types";
 
 const submitSchema = z.object({
   exercise_id: z.string().uuid("מזהה תרגול לא תקין"),
+  answer_data: z.string().optional(),
 });
 
 export async function submitExerciseAction(
@@ -21,6 +22,7 @@ export async function submitExerciseAction(
 
   const parsed = submitSchema.safeParse({
     exercise_id: formData.get("exercise_id"),
+    answer_data: formData.get("answer_data") ?? undefined,
   });
 
   if (!parsed.success) {
@@ -45,7 +47,7 @@ export async function submitExerciseAction(
       user_id: user.id,
       exercise_id: parsed.data.exercise_id,
       attempt_number: nextAttempt,
-      answer_data: null,
+      answer_data: parsed.data.answer_data ? JSON.parse(parsed.data.answer_data) : null,
     })) as { data: unknown; error: unknown };
 
   if (error) {

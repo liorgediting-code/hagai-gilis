@@ -8,7 +8,16 @@ import { requireUser } from "@/lib/auth/require-user";
 import { requirePageAccess } from "@/lib/auth/check-page-access";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubmitExerciseButton } from "./_components/submit-exercise-button";
-import type { ExerciseRow, LessonRow, LessonProgressRow, ExerciseSubmissionRow } from "@/lib/types/course-types";
+import { ChartExercise } from "./_components/chart-exercise";
+import type { ExerciseRow, LessonRow, LessonProgressRow, ExerciseSubmissionRow, CandleChartExercise } from "@/lib/types/course-types";
+
+function isCandleChart(v: unknown): v is CandleChartExercise {
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    (v as Record<string, unknown>).type === "candle_chart_select"
+  );
+}
 
 interface ExercisePageProps {
   params: Promise<{ id: string }>;
@@ -80,16 +89,25 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
         </Card>
       )}
 
-      <Card>
-        <CardContent className="flex min-h-64 items-center justify-center pt-6">
-          <div className="text-center space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">גרף אינטראקטיבי</p>
-            <p className="text-xs text-muted-foreground/60">ייבנה בשלב הבא</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <SubmitExerciseButton exerciseId={id} hasSubmitted={hasSubmitted} />
+      {isCandleChart(exercise.content_json) ? (
+        <ChartExercise
+          exerciseId={id}
+          chartData={exercise.content_json}
+          hasSubmitted={hasSubmitted}
+        />
+      ) : (
+        <>
+          <Card>
+            <CardContent className="flex min-h-64 items-center justify-center pt-6">
+              <div className="text-center space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">גרף אינטראקטיבי</p>
+                <p className="text-xs text-muted-foreground/60">ייבנה בשלב הבא</p>
+              </div>
+            </CardContent>
+          </Card>
+          <SubmitExerciseButton exerciseId={id} hasSubmitted={hasSubmitted} />
+        </>
+      )}
     </div>
   );
 }

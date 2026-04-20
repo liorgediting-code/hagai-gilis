@@ -65,3 +65,21 @@ export type ExerciseSubmissionRow = {
   answer_data: unknown | null;
   submitted_at: string;
 };
+
+export type CandleData = {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+};
+
+export type CandleChartExercise = {
+  type: "candle_chart_select";
+  question: string;
+  candles: CandleData[];
+  resistance_level?: number;
+  support_level?: number;
+  correct_candle_index: number;
+  explanation: string;
+};
