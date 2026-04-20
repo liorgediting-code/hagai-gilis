@@ -36,7 +36,7 @@ This file is the contract that every agent — main thread and subagents alike �
 6. **Two clients, strict separation:**
    - `lib/supabase/server.ts` → `createServerClient` + cookies. Use in Server Components, Server Actions, route handlers.
    - `lib/supabase/client.ts` → `createBrowserClient`. Use only in Client Components that genuinely need live browser queries.
-7. **Middleware** refreshes the Supabase session cookie on every request (`middleware.ts`).
+7. **Proxy (Next 16)** refreshes the Supabase session cookie on every request (`proxy.ts` at repo root — Next 16 renamed the `middleware.ts` convention to `proxy.ts`). Internal helper lives at `lib/supabase/middleware.ts` (Supabase's vocabulary).
 
 ## Coding conventions
 

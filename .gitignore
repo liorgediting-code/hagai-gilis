@@ -42,3 +42,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sensitive
+/pass/
+
+# supabase local temp
+supabase/.temp/
+
+# brainstorm visuals
+.superpowers/
