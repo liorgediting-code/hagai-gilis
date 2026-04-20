@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Tables } from "@/lib/types/database";
 
 // ---------------------------------------------------------------------------
@@ -162,6 +163,65 @@ export async function resetPasswordAction(
 
   revalidatePath("/", "layout");
   // Redirect to home; proxy + page.tsx handle role-based routing from there.
+  redirect("/");
+}
+
+// ---------------------------------------------------------------------------
+// activateAccountAction — student sets password for the first time (no session required)
+// ---------------------------------------------------------------------------
+const activateSchema = z
+  .object({
+    email: z.string().email("כתובת אימייל לא תקינה"),
+    password: z.string().min(8, "הסיסמה חייבת להכיל לפחות 8 תווים"),
+    confirmPassword: z.string().min(1, "נדרש אימות סיסמה"),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: "הסיסמאות אינן תואמות",
+    path: ["confirmPassword"],
+  });
+
+export async function activateAccountAction(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const parsed = activateSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+
+  if (!parsed.success) {
+    return { status: "error", error: parsed.error.errors[0]?.message ?? "קלט לא תקין" };
+  }
+
+  const admin = createAdminClient();
+
+  // Fetch all users and find by email (small platform — up to 1000 users)
+  const { data: usersData } = await admin.auth.admin.listUsers({ perPage: 1000 });
+  const existing = usersData?.users?.find(
+    (u) => u.email?.toLowerCase() === parsed.data.email.toLowerCase(),
+  );
+
+  if (!existing) {
+    return { status: "error", error: "המייל לא נמצא במערכת — ודא שחגי הוסיף אותך" };
+  }
+
+  const { error: updateError } = await admin.auth.admin.updateUserById(existing.id, {
+    password: parsed.data.password,
+  });
+
+  if (updateError) {
+    return { status: "error", error: "שגיאה בהגדרת הסיסמה — נסה שנית" };
+  }
+
+  // Sign in automatically with the new password
+  const supabase = await createClient();
+  await supabase.auth.signInWithPassword({
+    email: parsed.data.email,
+    password: parsed.data.password,
+  });
+
+  revalidatePath("/", "layout");
   redirect("/");
 }
 

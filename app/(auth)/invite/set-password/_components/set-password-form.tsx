@@ -5,36 +5,21 @@ import { useState, useActionState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { setInvitePasswordAction } from "@/app/(auth)/actions";
+import { activateAccountAction } from "@/app/(auth)/actions";
 import type { ActionState } from "@/app/(auth)/actions";
-
-interface SetPasswordFormProps {
-  userEmail: string;
-}
 
 const initialState: ActionState = { status: "idle" };
 
-export function SetPasswordForm({ userEmail }: SetPasswordFormProps) {
-  const [emailConfirmed, setEmailConfirmed] = useState(false);
-  const [emailInput, setEmailInput] = useState("");
-  const [emailError, setEmailError] = useState("");
+export function SetPasswordForm() {
+  const [email, setEmail] = useState("");
+  const [step, setStep] = useState<"email" | "password">("email");
 
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(
-    setInvitePasswordAction,
+    activateAccountAction,
     initialState,
   );
 
-  function handleEmailSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (emailInput.trim().toLowerCase() === userEmail.toLowerCase()) {
-      setEmailError("");
-      setEmailConfirmed(true);
-    } else {
-      setEmailError("האימייל לא תואם לחשבון שהוזמן — בדוק שוב");
-    }
-  }
-
-  if (!emailConfirmed) {
+  if (step === "email") {
     return (
       <div className="p-6 space-y-6">
         <div>
@@ -46,7 +31,13 @@ export function SetPasswordForm({ userEmail }: SetPasswordFormProps) {
           </p>
         </div>
 
-        <form onSubmit={handleEmailSubmit} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (email.trim()) setStep("password");
+          }}
+          className="space-y-4"
+        >
           <div className="space-y-1.5">
             <Label htmlFor="email">אימייל</Label>
             <Input
@@ -56,15 +47,11 @@ export function SetPasswordForm({ userEmail }: SetPasswordFormProps) {
               autoComplete="email"
               placeholder="you@example.com"
               className="h-11"
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
-
-          {emailError && (
-            <p role="alert" className="text-sm text-destructive">{emailError}</p>
-          )}
 
           <Button type="submit" className="w-full min-h-11 h-11">
             המשך
@@ -81,11 +68,13 @@ export function SetPasswordForm({ userEmail }: SetPasswordFormProps) {
           בחר סיסמה
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          הסיסמה חייבת להכיל לפחות 8 תווים.
+          מגדיר סיסמה עבור <span dir="ltr" className="font-medium">{email}</span>
         </p>
       </div>
 
       <form action={formAction} className="space-y-4">
+        <input type="hidden" name="email" value={email} />
+
         <div className="space-y-1.5">
           <Label htmlFor="password">סיסמה</Label>
           <Input
@@ -119,8 +108,16 @@ export function SetPasswordForm({ userEmail }: SetPasswordFormProps) {
         )}
 
         <Button type="submit" disabled={isPending} className="w-full min-h-11 h-11">
-          {isPending ? "שומר..." : "שמור סיסמה וכנס"}
+          {isPending ? "מגדיר..." : "שמור סיסמה וכנס"}
         </Button>
+
+        <button
+          type="button"
+          onClick={() => setStep("email")}
+          className="w-full text-center text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        >
+          חזור לשינוי אימייל
+        </button>
       </form>
     </div>
   );
