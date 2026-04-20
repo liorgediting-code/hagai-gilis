@@ -106,7 +106,7 @@ export default async function StudentLayout({ children }: { children: ReactNode 
       </header>
 
       {/* Mobile top bar – brand + greeting + logout */}
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-card/95 backdrop-blur-sm md:hidden">
+      <header className="sticky top-0 z-30 border-b border-border/50 bg-card/95 backdrop-blur-sm md:hidden pt-safe-area">
         <div className="flex items-center justify-between px-4 py-3">
           <span className="font-heading text-base font-bold text-primary">
             חגי גיליס
