@@ -69,12 +69,18 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="flex flex-col items-center gap-2 text-center text-sm">
         <Link
           href="/forgot-password"
-          className="text-primary underline-offset-4 hover:underline"
+          className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
         >
           שכחתי סיסמה
+        </Link>
+        <Link
+          href="/invite/set-password"
+          className="text-primary underline-offset-4 hover:underline"
+        >
+          כניסה ראשונה? הפעל את החשבון שלך
         </Link>
       </div>
     </div>
