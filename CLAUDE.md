@@ -103,6 +103,7 @@ This file is the contract that every agent — main thread and subagents alike �
 
 - ✅ Ask before architectural decisions
 - ✅ Commit frequently with Hebrew+English commit messages (e.g. `feat(auth): add login page | הוספת מסך התחברות`)
+- ✅ **Push to GitHub after every commit** — `git push origin main` — no exceptions
 - ✅ Test on mobile viewport (375px) throughout development
 - ✅ Regenerate Supabase types after every schema change: `pnpm run db:types`
 
