@@ -197,8 +197,11 @@ export async function activateAccountAction(
   const admin = createAdminClient();
 
   // Fetch all users and find by email (small platform — up to 1000 users)
-  const { data: usersData } = await admin.auth.admin.listUsers({ perPage: 1000 });
-  const existing = usersData?.users?.find(
+  const { data: usersData, error: listError } = await admin.auth.admin.listUsers({ perPage: 1000 });
+  if (listError || !usersData?.users) {
+    return { status: "error", error: "שגיאה בגישה למשתמשים — נסה שנית" };
+  }
+  const existing = usersData.users.find(
     (u) => u.email?.toLowerCase() === parsed.data.email.toLowerCase(),
   );
 

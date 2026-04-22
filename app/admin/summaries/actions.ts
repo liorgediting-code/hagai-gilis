@@ -31,10 +31,10 @@ export async function saveSummaryAction(
   const supabase = asUntyped(await createClient());
   const { error } = (await supabase
     .from("lesson_summaries")
-    .upsert({
-      lesson_id: parsed.data.lesson_id,
-      body_markdown: parsed.data.body_markdown,
-    })) as { data: unknown; error: unknown };
+    .upsert(
+      { lesson_id: parsed.data.lesson_id, body_markdown: parsed.data.body_markdown },
+      { onConflict: "lesson_id" },
+    )) as { data: unknown; error: unknown };
 
   if (error) {
     return { status: "error", error: "שגיאה בשמירת הסיכום — נסה שנית" };
