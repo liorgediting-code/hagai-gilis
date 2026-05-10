@@ -86,14 +86,14 @@ export function ChartExercise({ exerciseId, chartData, hasSubmitted }: Props) {
       )}
 
       {result?.status === "success" && result && (
-        <Card className={result.correct ? "border-green-500/40 bg-green-500/5" : "border-orange-500/40 bg-orange-500/5"}>
+        <Card className={result.passed ? "border-green-500/40 bg-green-500/5" : "border-orange-500/40 bg-orange-500/5"}>
           <CardContent className="pt-4 pb-4 space-y-2">
             <div className="flex items-start gap-2">
-              {result.correct
+              {result.passed
                 ? <CheckCircleIcon className="mt-0.5 size-5 shrink-0 text-green-500" />
                 : <XCircleIcon className="mt-0.5 size-5 shrink-0 text-orange-500" />}
               <p className="text-sm font-medium">
-                {result.correct ? "מצוין! הנקודה בתוך אזור הקבלה" : "לא בדיוק — הנקודה מחוץ לאזור הנכון"}
+                {result.passed ? "מצוין! הנקודה בתוך אזור הקבלה" : "לא בדיוק — הנקודה מחוץ לאזור הנכון"}
               </p>
             </div>
             {result.explanation && (

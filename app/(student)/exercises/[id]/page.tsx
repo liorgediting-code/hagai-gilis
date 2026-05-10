@@ -32,8 +32,8 @@ function sanitize(content: ExerciseContent): SanitizedChartClickExercise | Sanit
     return safe;
   }
   if (content.type === "multiple_choice") {
-    const { correct_option_index: _c, ...safe } = content;
-    return safe;
+    const sanitizedQuestions = content.questions.map(({ correct_option_index: _c, explanation: _e, ...q }) => q);
+    return { ...content, questions: sanitizedQuestions };
   }
   return null;
 }

@@ -66,11 +66,12 @@ export async function submitExerciseAction(
       answer.clicked_candle_index <= zone.end_candle_index;
     explanation = content.explanation;
   } else if (content?.type === "multiple_choice") {
-    const answer = answerData as { selected_option_index?: number };
+    const answer = answerData as { selected_option_indices?: number[] };
+    const q = content.questions[0];
     isCorrect =
-      typeof answer.selected_option_index === "number" &&
-      answer.selected_option_index === content.correct_option_index;
-    explanation = content.explanation;
+      Array.isArray(answer.selected_option_indices) &&
+      answer.selected_option_indices[0] === q.correct_option_index;
+    explanation = q.explanation;
   }
 
   // Get next attempt number
@@ -100,5 +101,5 @@ export async function submitExerciseAction(
 
   revalidatePath(`/exercises/${parsed.data.exercise_id}`);
   revalidatePath("/exercises");
-  return { status: "success", correct: isCorrect, explanation };
+  return { status: "success", passed: isCorrect, explanation };
 }

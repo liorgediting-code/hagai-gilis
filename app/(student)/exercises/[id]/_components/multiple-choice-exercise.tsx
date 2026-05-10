@@ -29,7 +29,7 @@ export function MultipleChoiceExercise({ exerciseId, chartData, hasSubmitted }: 
       setError("יש לבחור תשובה לפני השליחה");
       return;
     }
-    const answer: MultipleChoiceAnswer = { selected_option_index: selected };
+    const answer: MultipleChoiceAnswer = { selected_option_indices: [selected] };
     const formData = new FormData();
     formData.set("exercise_id", exerciseId);
     formData.set("answer_data", JSON.stringify(answer));
@@ -51,7 +51,7 @@ export function MultipleChoiceExercise({ exerciseId, chartData, hasSubmitted }: 
     <div className="space-y-4">
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="pt-4 pb-4">
-          <p className="font-semibold leading-relaxed">{chartData.question}</p>
+          <p className="font-semibold leading-relaxed">{chartData.questions[0].question}</p>
         </CardContent>
       </Card>
 
@@ -68,7 +68,7 @@ export function MultipleChoiceExercise({ exerciseId, chartData, hasSubmitted }: 
       </Card>
 
       <div className="space-y-2">
-        {chartData.options.map((option, i) => {
+        {chartData.questions[0].options.map((option, i) => {
           const idx = i as 0 | 1 | 2 | 3;
           const isSelected = selected === idx;
           return (
@@ -94,14 +94,14 @@ export function MultipleChoiceExercise({ exerciseId, chartData, hasSubmitted }: 
       </div>
 
       {result?.status === "success" && result && (
-        <Card className={result.correct ? "border-green-500/40 bg-green-500/5" : "border-orange-500/40 bg-orange-500/5"}>
+        <Card className={result.passed ? "border-green-500/40 bg-green-500/5" : "border-orange-500/40 bg-orange-500/5"}>
           <CardContent className="pt-4 pb-4 space-y-2">
             <div className="flex items-start gap-2">
-              {result.correct
+              {result.passed
                 ? <CheckCircleIcon className="mt-0.5 size-5 shrink-0 text-green-500" />
                 : <XCircleIcon className="mt-0.5 size-5 shrink-0 text-orange-500" />}
               <p className="text-sm font-medium">
-                {result.correct ? "נכון מאוד!" : "לא בדיוק"}
+                {result.passed ? "נכון מאוד!" : "לא בדיוק"}
               </p>
             </div>
             {result.explanation && (
