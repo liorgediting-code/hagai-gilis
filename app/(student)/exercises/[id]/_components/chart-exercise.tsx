@@ -1,174 +1,117 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CheckCircleIcon, XCircleIcon, InfoIcon } from "lucide-react";
-
+import { CheckCircleIcon, XCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CandleChart } from "@/components/candle-chart";
 import { submitExerciseAction } from "@/app/(student)/exercises/[id]/actions";
-import type { CandleChartExercise } from "@/lib/types/course-types";
+import type { SanitizedChartClickExercise, ChartClickAnswer, ExerciseSubmitResult } from "@/lib/types/exercise-types";
 
-interface ChartExerciseProps {
+interface Props {
   exerciseId: string;
-  chartData: CandleChartExercise;
+  chartData: SanitizedChartClickExercise;
   hasSubmitted: boolean;
 }
 
-export function ChartExercise({
-  exerciseId,
-  chartData,
-  hasSubmitted,
-}: ChartExerciseProps) {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [submitted, setSubmitted] = useState(hasSubmitted);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(
-    hasSubmitted ? null : null,
-  );
+export function ChartExercise({ exerciseId, chartData, hasSubmitted }: Props) {
+  const [selectedPoint, setSelectedPoint] = useState<{ price: number; candleIndex: number } | null>(null);
+  const [result, setResult] = useState<ExerciseSubmitResult | null>(hasSubmitted ? { status: "success" } : null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
+  const submitted = result?.status === "success";
+
+  function handlePointClick(price: number, candleIndex: number) {
+    if (submitted) return;
+    setSelectedPoint({ price, candleIndex });
+    setError(null);
+  }
+
   function handleSubmit() {
-    if (selectedIndex === null) {
-      setError("יש לבחור נר לפני השליחה");
+    if (!selectedPoint) {
+      setError("יש לסמן נקודה על הגרף לפני השליחה");
       return;
     }
-    setError(null);
-
+    const answer: ChartClickAnswer = {
+      clicked_price: selectedPoint.price,
+      clicked_candle_index: selectedPoint.candleIndex,
+    };
     const formData = new FormData();
     formData.set("exercise_id", exerciseId);
-    formData.set(
-      "answer_data",
-      JSON.stringify({ selected_candle_index: selectedIndex }),
-    );
+    formData.set("answer_data", JSON.stringify(answer));
 
     startTransition(async () => {
-      const result = await submitExerciseAction({ status: "idle" }, formData);
-      if (result.status === "success") {
-        setSubmitted(true);
-        setIsCorrect(selectedIndex === chartData.correct_candle_index);
-      } else if (result.status === "error") {
-        setError(result.error);
-      } else {
-        setError("שגיאה בשמירת התשובה — נסה שנית");
-      }
+      const res = await submitExerciseAction({ status: "idle" }, formData);
+      setResult(res);
+      if (res.status === "error") setError(res.error ?? "שגיאה — נסה שנית");
     });
   }
 
   function handleRetry() {
-    setSubmitted(false);
-    setSelectedIndex(null);
-    setIsCorrect(null);
+    setResult(null);
+    setSelectedPoint(null);
     setError(null);
   }
 
   return (
     <div className="space-y-4">
-      {/* Question card */}
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="pt-4 pb-4">
-          <p className="font-semibold text-foreground leading-relaxed">
-            {chartData.question}
-          </p>
+          <p className="font-semibold leading-relaxed">{chartData.question}</p>
           {!submitted && (
-            <p className="mt-1 text-sm text-muted-foreground">
-              לחץ על הנר שבחרת ואז &#39;שלח תשובה&#39;
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">לחץ על הגרף לסימון הנקודה</p>
           )}
         </CardContent>
       </Card>
 
-      {/* Chart card */}
       <Card className="p-3 sm:p-4">
         <CardContent className="px-0">
           <CandleChart
             candles={chartData.candles}
-            resistanceLevel={chartData.resistance_level}
-            supportLevel={chartData.support_level}
-            selectedIndex={selectedIndex}
-            correctIndex={submitted ? chartData.correct_candle_index : null}
-            showSolution={submitted}
-            onCandleClick={submitted ? undefined : setSelectedIndex}
+            mode={submitted ? "view-only" : "student-click"}
+            supportLevels={chartData.support_levels}
+            resistanceLevels={chartData.resistance_levels}
+            selectedPoint={submitted ? null : selectedPoint}
+            onPointClick={submitted ? undefined : handlePointClick}
           />
         </CardContent>
       </Card>
 
-      {/* Feedback card (post-submission) */}
-      {submitted && (
-        <Card
-          className={
-            isCorrect === true
-              ? "border-green-500/40 bg-green-500/5"
-              : isCorrect === false
-                ? "border-orange-500/40 bg-orange-500/5"
-                : "border-primary/40 bg-primary/5"
-          }
-        >
+      {selectedPoint && !submitted && (
+        <p className="text-xs text-muted-foreground">
+          נבחר: נר {selectedPoint.candleIndex + 1} | מחיר ₪{selectedPoint.price.toFixed(1)}
+        </p>
+      )}
+
+      {submitted && result && (
+        <Card className={result.correct ? "border-green-500/40 bg-green-500/5" : "border-orange-500/40 bg-orange-500/5"}>
           <CardContent className="pt-4 pb-4 space-y-2">
             <div className="flex items-start gap-2">
-              {isCorrect === true && (
-                <CheckCircleIcon
-                  className="mt-0.5 size-5 shrink-0 text-green-500"
-                  aria-hidden="true"
-                />
-              )}
-              {isCorrect === false && (
-                <XCircleIcon
-                  className="mt-0.5 size-5 shrink-0 text-orange-500"
-                  aria-hidden="true"
-                />
-              )}
-              {isCorrect === null && (
-                <InfoIcon
-                  className="mt-0.5 size-5 shrink-0 text-primary"
-                  aria-hidden="true"
-                />
-              )}
-              <p className="text-sm font-medium text-foreground">
-                {isCorrect === true && "מעולה! זיהית נכון את פריצת השווא"}
-                {isCorrect === false &&
-                  "לא בדיוק — הנר הנכון מסומן בירוק בגרף"}
-                {isCorrect === null &&
-                  "תרגיל זה כבר הוגש — הנר הנכון מסומן בגרף"}
+              {result.correct
+                ? <CheckCircleIcon className="mt-0.5 size-5 shrink-0 text-green-500" />
+                : <XCircleIcon className="mt-0.5 size-5 shrink-0 text-orange-500" />}
+              <p className="text-sm font-medium">
+                {result.correct ? "מצוין! הנקודה בתוך אזור הקבלה" : "לא בדיוק — הנקודה מחוץ לאזור הנכון"}
               </p>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {chartData.explanation}
-            </p>
+            {result.explanation && (
+              <p className="text-sm text-muted-foreground leading-relaxed">{result.explanation}</p>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {/* Submit area (pre-submission) */}
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
       {!submitted && (
-        <div className="space-y-2">
-          <Button
-            onClick={handleSubmit}
-            disabled={selectedIndex === null || isPending}
-            className="w-full min-h-11 sm:w-auto"
-          >
-            {isPending ? "שולח..." : "שלח תשובה"}
-          </Button>
-
-          {selectedIndex !== null && (
-            <p className="text-xs text-muted-foreground">
-              נר {selectedIndex + 1} מתוך {chartData.candles.length} נבחר
-            </p>
-          )}
-
-          {error !== null && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
-        </div>
+        <Button onClick={handleSubmit} disabled={!selectedPoint || isPending} className="w-full min-h-11 sm:w-auto">
+          {isPending ? "שולח..." : "שלח תשובה"}
+        </Button>
       )}
 
-      {/* Retry button (post-submission) */}
       {submitted && (
-        <Button
-          variant="outline"
-          onClick={handleRetry}
-          className="w-full min-h-11 sm:w-auto"
-        >
+        <Button variant="outline" onClick={handleRetry} className="w-full min-h-11 sm:w-auto">
           נסה שוב
         </Button>
       )}
