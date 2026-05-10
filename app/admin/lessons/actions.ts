@@ -16,7 +16,7 @@ const lessonSchema = z.object({
   description: z.string().max(2000, "תיאור ארוך מדי").optional(),
   video_url: z.string().url("כתובת URL לא תקינה").optional(),
   order_index: z.coerce.number().int().min(0, "סדר לא תקין"),
-  pass_threshold: z.coerce.number().int().min(0).max(100).default(70),
+  pass_threshold: z.coerce.number().int().min(0, "סף מעבר חייב להיות לפחות 0").max(100, "סף מעבר לא יכול להיות יותר מ-100").default(70),
 });
 
 export async function createLessonAction(
@@ -39,9 +39,14 @@ export async function createLessonAction(
     return { status: "error", error: parsed.error.errors[0]?.message ?? "קלט לא תקין" };
   }
 
-  const videoUrl = parsed.data.video_url
-    ? parseYouTubeEmbedUrl(parsed.data.video_url)
-    : null;
+  let videoUrl: string | null = null;
+  if (parsed.data.video_url) {
+    try {
+      videoUrl = parseYouTubeEmbedUrl(parsed.data.video_url);
+    } catch {
+      return { status: "error", error: "כתובת YouTube לא תקינה — השתמש בכתובת embed או watch" };
+    }
+  }
 
   const supabase = asUntyped(await createClient());
   const { error } = (await supabase
@@ -88,9 +93,14 @@ export async function updateLessonAction(
     return { status: "error", error: parsed.error.errors[0]?.message ?? "קלט לא תקין" };
   }
 
-  const videoUrl = parsed.data.video_url
-    ? parseYouTubeEmbedUrl(parsed.data.video_url)
-    : null;
+  let videoUrl: string | null = null;
+  if (parsed.data.video_url) {
+    try {
+      videoUrl = parseYouTubeEmbedUrl(parsed.data.video_url);
+    } catch {
+      return { status: "error", error: "כתובת YouTube לא תקינה — השתמש בכתובת embed או watch" };
+    }
+  }
 
   const supabase = asUntyped(await createClient());
   const { error } = (await supabase

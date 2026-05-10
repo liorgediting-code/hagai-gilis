@@ -5,5 +5,5 @@ export function parseYouTubeEmbedUrl(url: string): string {
   if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
   const watchMatch = trimmed.match(/[?&]v=([^&]+)/);
   if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
-  return trimmed;
+  throw new Error("כתובת YouTube לא תקינה — השתמש בכתובת embed או watch");
 }

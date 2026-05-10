@@ -50,18 +50,18 @@ export function LessonForm({ action, defaultValues, lessonId, moduleId }: Lesson
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="video_url">כתובת YouTube (Embed URL — אופציונלי)</Label>
+        <Label htmlFor="video_url">כתובת YouTube (Watch או Embed — אופציונלי)</Label>
         <textarea
           id="video_url"
           name="video_url"
           rows={2}
           dir="ltr"
           defaultValue={defaultValues?.video_url ?? ""}
-          placeholder="https://www.youtube.com/embed/VIDEO_ID"
+          placeholder="https://www.youtube.com/watch?v=VIDEO_ID"
           className="flex w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm font-mono shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
         />
         <p className="text-xs text-muted-foreground">
-          השתמש בכתובת embed — לדוגמה: https://www.youtube.com/embed/VIDEO_ID
+          ניתן להדביק כתובת watch (youtube.com/watch?v=ID) או embed (youtube.com/embed/ID)
         </p>
       </div>
 
