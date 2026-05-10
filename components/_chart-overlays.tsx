@@ -3,6 +3,18 @@
 import type { CandleData } from "@/lib/types/course-types";
 import type { PriceLine, AcceptanceZone } from "@/lib/types/exercise-types";
 
+function formatCandleLabel(dateStr: string): string {
+  const spaceIdx = dateStr.indexOf(" ");
+  if (spaceIdx === -1) {
+    // Date-only format: "2026-05-06" → "06/05"
+    const parts = dateStr.split("-");
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+    return dateStr;
+  }
+  // Datetime format: "2026-05-06 00:00" → show time only "00:00"
+  return dateStr.slice(spaceIdx + 1, spaceIdx + 6);
+}
+
 interface ChartGridProps {
   minPrice: number;
   totalRange: number;
@@ -238,7 +250,7 @@ export function CandleList({
             {i % 5 === 0 && (
               <text x={cx} y={H - 6} textAnchor="middle"
                 fontSize={9} fill="currentColor" fillOpacity={0.4}>
-                {candle.date}
+                {formatCandleLabel(candle.date)}
               </text>
             )}
           </g>

@@ -30,11 +30,13 @@ export function WizardStep2Data({
   const [parseErrors, setParseErrors] = useState<string[]>([]);
   const [supports, setSupports] = useState<PriceLine[]>(supportLevels);
   const [resistances, setResistances] = useState<PriceLine[]>(resistanceLevels);
+  const [localCandleCount, setLocalCandleCount] = useState(candles.length);
 
   function handleCsvChange(raw: string) {
     setCsv(raw);
     const { candles: parsed, errors } = parseCandleCSV(raw);
     setParseErrors(errors);
+    setLocalCandleCount(parsed.length);
     onUpdate({ csvRaw: raw, candles: parsed, supportLevels: supports, resistanceLevels: resistances });
   }
 
@@ -79,7 +81,7 @@ export function WizardStep2Data({
     }
   }
 
-  const canProceed = candles.length >= 3 && parseErrors.length === 0;
+  const canProceed = localCandleCount >= 3 && parseErrors.length === 0;
 
   return (
     <div className="space-y-6">

@@ -30,14 +30,20 @@ export function WizardStep3Zone({
 
       <Card className="p-3">
         <CardContent className="px-0">
-          <CandleChart
-            candles={candles}
-            mode="admin-draw"
-            supportLevels={supportLevels}
-            resistanceLevels={resistanceLevels}
-            acceptanceZone={zone}
-            onZoneDraw={onZoneDraw}
-          />
+          {candles.length === 0 ? (
+            <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
+              חזור לשלב 2 והכנס נתוני CSV
+            </div>
+          ) : (
+            <CandleChart
+              candles={candles}
+              mode="admin-draw"
+              supportLevels={supportLevels}
+              resistanceLevels={resistanceLevels}
+              acceptanceZone={zone}
+              onZoneDraw={onZoneDraw}
+            />
+          )}
         </CardContent>
       </Card>
 

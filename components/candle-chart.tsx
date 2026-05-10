@@ -76,7 +76,7 @@ export function CandleChart({
     ...allResistanceLevels.map((l) => l.price),
   ];
   const { minPrice, maxPrice, totalRange } = computePriceRange(allPrices);
-  const slotW = chartW / candles.length;
+  const slotW = chartW / Math.max(1, candles.length);
   const bodyW = Math.max(4, slotW * 0.6);
 
   const scaleY = (price: number) => scaleYUtil(price, minPrice, totalRange, H, PAD_Y, chartH);
