@@ -1,9 +1,3 @@
-/**
- * Local row types for the course system tables (modules, lessons, lesson_progress,
- * lesson_summaries, user_permissions). These mirror the columns in 0002_courses.sql
- * and will align with the generated database.ts once types are regenerated.
- */
-
 export type ModuleRow = {
   id: string;
   title: string;
@@ -20,6 +14,7 @@ export type LessonRow = {
   description: string | null;
   video_url: string | null;
   order_index: number;
+  pass_threshold: number;
   created_at: string;
   updated_at: string;
 };
@@ -40,11 +35,11 @@ export type LessonSummaryRow = {
 
 export type UserPermissionRow = {
   user_id: string;
-  page: "lessons" | "exercises" | "summaries";
+  page: "lessons" | "exercises" | "summaries" | "market";
   created_at: string;
 };
 
-export type PageKey = "lessons" | "exercises" | "summaries";
+export type PageKey = "lessons" | "exercises" | "summaries" | "market";
 
 export type ExerciseRow = {
   id: string;
@@ -52,6 +47,7 @@ export type ExerciseRow = {
   title: string;
   description: string | null;
   order_index: number;
+  level: number;
   content_json: unknown | null;
   created_at: string;
   updated_at: string;
@@ -63,7 +59,25 @@ export type ExerciseSubmissionRow = {
   exercise_id: string;
   attempt_number: number;
   answer_data: unknown | null;
+  passed: boolean | null;
+  score_pct: number | null;
   submitted_at: string;
+};
+
+export type LessonUnlockRow = {
+  user_id: string;
+  lesson_id: string;
+  unlocked_at: string;
+  unlocked_by: string | null;
+};
+
+export type MarketPostRow = {
+  id: string;
+  title: string;
+  body: string;
+  image_url: string | null;
+  author_id: string | null;
+  created_at: string;
 };
 
 export type CandleData = {
