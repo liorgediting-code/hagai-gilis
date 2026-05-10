@@ -67,7 +67,9 @@ export async function submitExerciseAction(
     explanation = content.explanation;
   } else if (content?.type === "multiple_choice") {
     const answer = answerData as { selected_option_index?: number };
-    isCorrect = answer.selected_option_index === content.correct_option_index;
+    isCorrect =
+      typeof answer.selected_option_index === "number" &&
+      answer.selected_option_index === content.correct_option_index;
     explanation = content.explanation;
   }
 
