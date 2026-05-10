@@ -50,17 +50,19 @@ export function LessonForm({ action, defaultValues, lessonId, moduleId }: Lesson
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="video_url">כתובת וידאו (Bunny URL — אופציונלי)</Label>
+        <Label htmlFor="video_url">כתובת YouTube (Embed URL — אופציונלי)</Label>
         <textarea
           id="video_url"
           name="video_url"
           rows={2}
           dir="ltr"
           defaultValue={defaultValues?.video_url ?? ""}
-          placeholder="https://iframe.mediadelivery.net/embed/..."
+          placeholder="https://www.youtube.com/embed/VIDEO_ID"
           className="flex w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm font-mono shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
         />
-        <p className="text-xs text-muted-foreground">הדבק את כתובת ה-iframe מ-Bunny Stream</p>
+        <p className="text-xs text-muted-foreground">
+          השתמש בכתובת embed — לדוגמה: https://www.youtube.com/embed/VIDEO_ID
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -75,6 +77,22 @@ export function LessonForm({ action, defaultValues, lessonId, moduleId }: Lesson
           defaultValue={defaultValues?.order_index ?? 0}
           className="max-w-32"
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="pass_threshold">סף מעבר (%)</Label>
+        <Input
+          id="pass_threshold"
+          name="pass_threshold"
+          type="number"
+          dir="ltr"
+          min="0"
+          max="100"
+          required
+          defaultValue={defaultValues?.pass_threshold ?? 70}
+          className="max-w-32"
+        />
+        <p className="text-xs text-muted-foreground">ציון מינימלי למעבר תרגיל (0–100, ברירת מחדל 70)</p>
       </div>
 
       {state.status === "error" && (

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { parseYouTubeEmbedUrl } from "@/lib/utils/youtube";
 import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
 import { requireAdmin } from "@/lib/auth/require-admin";
@@ -15,6 +16,7 @@ const lessonSchema = z.object({
   description: z.string().max(2000, "תיאור ארוך מדי").optional(),
   video_url: z.string().url("כתובת URL לא תקינה").optional(),
   order_index: z.coerce.number().int().min(0, "סדר לא תקין"),
+  pass_threshold: z.coerce.number().int().min(0).max(100).default(70),
 });
 
 export async function createLessonAction(
@@ -30,11 +32,16 @@ export async function createLessonAction(
     description: formData.get("description") || undefined,
     video_url: rawVideoUrl && String(rawVideoUrl).trim() !== "" ? rawVideoUrl : undefined,
     order_index: formData.get("order_index"),
+    pass_threshold: formData.get("pass_threshold"),
   });
 
   if (!parsed.success) {
     return { status: "error", error: parsed.error.errors[0]?.message ?? "קלט לא תקין" };
   }
+
+  const videoUrl = parsed.data.video_url
+    ? parseYouTubeEmbedUrl(parsed.data.video_url)
+    : null;
 
   const supabase = asUntyped(await createClient());
   const { error } = (await supabase
@@ -43,8 +50,9 @@ export async function createLessonAction(
       module_id: parsed.data.module_id,
       title: parsed.data.title,
       description: parsed.data.description ?? null,
-      video_url: parsed.data.video_url ?? null,
+      video_url: videoUrl,
       order_index: parsed.data.order_index,
+      pass_threshold: parsed.data.pass_threshold,
     })) as { data: LessonRow | null; error: unknown };
 
   if (error) {
@@ -73,11 +81,16 @@ export async function updateLessonAction(
     description: formData.get("description") || undefined,
     video_url: rawVideoUrl && String(rawVideoUrl).trim() !== "" ? rawVideoUrl : undefined,
     order_index: formData.get("order_index"),
+    pass_threshold: formData.get("pass_threshold"),
   });
 
   if (!parsed.success) {
     return { status: "error", error: parsed.error.errors[0]?.message ?? "קלט לא תקין" };
   }
+
+  const videoUrl = parsed.data.video_url
+    ? parseYouTubeEmbedUrl(parsed.data.video_url)
+    : null;
 
   const supabase = asUntyped(await createClient());
   const { error } = (await supabase
@@ -85,8 +98,9 @@ export async function updateLessonAction(
     .update({
       title: parsed.data.title,
       description: parsed.data.description ?? null,
-      video_url: parsed.data.video_url ?? null,
+      video_url: videoUrl,
       order_index: parsed.data.order_index,
+      pass_threshold: parsed.data.pass_threshold,
     })
     .eq("id", id)) as { data: LessonRow | null; error: unknown };
 

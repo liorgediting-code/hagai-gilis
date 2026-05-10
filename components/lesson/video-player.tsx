@@ -11,7 +11,7 @@ export function VideoPlayer({ videoUrl }: VideoPlayerProps) {
         <iframe
           src={videoUrl}
           className="w-full aspect-video"
-          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
           allowFullScreen
           title="סרטון שיעור"
         />
