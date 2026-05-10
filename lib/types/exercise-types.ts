@@ -77,7 +77,13 @@ export const acceptanceZoneSchema = z.object({
   max_price: z.number(),
   start_candle_index: z.number().int().min(0),
   end_candle_index: z.number().int().min(0),
-});
+}).refine(
+  (zone) => zone.max_price >= zone.min_price,
+  { message: "מחיר מקסימום חייב להיות גדול ממינימום", path: ["max_price"] },
+).refine(
+  (zone) => zone.end_candle_index >= zone.start_candle_index,
+  { message: "נר סיום חייב להיות גדול מנר התחלה", path: ["end_candle_index"] },
+);
 
 export const candleDataSchema = z.object({
   date: z.string().min(1),
