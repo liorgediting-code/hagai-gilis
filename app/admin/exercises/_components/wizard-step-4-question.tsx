@@ -17,6 +17,8 @@ interface Props {
   explanation: string;
   lessonId: string;
   orderIndex: number;
+  level: 1 | 2 | 3;
+  exType: "chart_click" | "multiple_choice";
   lessons: LessonOption[];
   contentJson: string;
   editId?: string;
@@ -34,7 +36,7 @@ const initialState: ActionState = { status: "idle" };
 
 export function WizardStep4Question({
   title, question, explanation, lessonId, orderIndex,
-  lessons, contentJson, editId, onUpdate, onBack,
+  level, exType, lessons, contentJson, editId, onUpdate, onBack,
 }: Props) {
   const action = editId ? updateExerciseAction : createExerciseAction;
   const [state, formAction] = useActionState(action, initialState);
@@ -59,6 +61,7 @@ export function WizardStep4Question({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {editId && <input type="hidden" name="id" value={editId} />}
+      <input type="hidden" name="level" value={level} />
       <input type="hidden" name="content_json" value={contentJson} />
 
       <div>
@@ -75,23 +78,27 @@ export function WizardStep4Question({
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring" />
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium" htmlFor="question">שאלה</label>
-          <textarea id="question" required rows={3}
-            defaultValue={question}
-            onChange={(e) => onUpdate({ title, question: e.target.value, explanation, lessonId, orderIndex })}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            name="__question_display" />
-        </div>
+        {exType === "chart_click" && (
+          <>
+            <div className="space-y-1">
+              <label className="text-sm font-medium" htmlFor="question">שאלה</label>
+              <textarea id="question" required rows={3}
+                defaultValue={question}
+                onChange={(e) => onUpdate({ title, question: e.target.value, explanation, lessonId, orderIndex })}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                name="__question_display" />
+            </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium" htmlFor="explanation">הסבר (לאחר מענה)</label>
-          <textarea id="explanation" required rows={3}
-            defaultValue={explanation}
-            onChange={(e) => onUpdate({ title, question, explanation: e.target.value, lessonId, orderIndex })}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            name="__explanation_display" />
-        </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium" htmlFor="explanation">הסבר (לאחר מענה)</label>
+              <textarea id="explanation" required rows={3}
+                defaultValue={explanation}
+                onChange={(e) => onUpdate({ title, question, explanation: e.target.value, lessonId, orderIndex })}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                name="__explanation_display" />
+            </div>
+          </>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">

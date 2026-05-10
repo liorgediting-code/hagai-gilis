@@ -7,7 +7,7 @@ import { WizardStep3Zone } from "./wizard-step-3-zone";
 import { WizardStep3Quiz } from "./wizard-step-3-quiz";
 import { WizardStep4Question } from "./wizard-step-4-question";
 import type { CandleData } from "@/lib/types/course-types";
-import type { PriceLine, AcceptanceZone, ChartClickExercise, MultipleChoiceExercise, MultipleChoiceQuestion } from "@/lib/types/exercise-types";
+import type { PriceLine, AcceptanceZone, ChartClickExercise, MultipleChoiceQuestion } from "@/lib/types/exercise-types";
 
 interface LessonOption {
   id: string;
@@ -22,8 +22,6 @@ interface WizardInitialData {
   supportLevels?: PriceLine[];
   resistanceLevels?: PriceLine[];
   acceptanceZone?: AcceptanceZone;
-  options?: [string, string, string, string];
-  correctOptionIndex?: 0 | 1 | 2 | 3;
   questions?: MultipleChoiceQuestion[];
   title?: string;
   question?: string;
@@ -49,12 +47,6 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
   const [supportLevels, setSupportLevels] = useState<PriceLine[]>(initial.supportLevels ?? []);
   const [resistanceLevels, setResistanceLevels] = useState<PriceLine[]>(initial.resistanceLevels ?? []);
   const [zone, setZone] = useState<AcceptanceZone | null>(initial.acceptanceZone ?? null);
-  const [options, setOptions] = useState<[string, string, string, string]>(
-    initial.options ?? ["", "", "", ""]
-  );
-  const [correctOptionIndex, setCorrectOptionIndex] = useState<0 | 1 | 2 | 3 | null>(
-    initial.correctOptionIndex ?? null
-  );
   const [questions, setQuestions] = useState<MultipleChoiceQuestion[]>(initial.questions ?? []);
   const [title, setTitle] = useState(initial.title ?? "");
   const [question, setQuestion] = useState(initial.question ?? "");
@@ -78,15 +70,14 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
       };
       return JSON.stringify(ex);
     } else {
-      const ex: MultipleChoiceExercise = {
+      return JSON.stringify({
         type: "multiple_choice",
         candles,
         support_levels: supportLevels,
         resistance_levels: resistanceLevels,
         questions,
         ...(timeframe ? { timeframe } : {}),
-      };
-      return JSON.stringify(ex);
+      });
     }
   }
 
@@ -174,6 +165,8 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
           explanation={explanation}
           lessonId={lessonId}
           orderIndex={orderIndex}
+          level={level}
+          exType={exType!}
           lessons={lessons}
           contentJson={buildContentJson()}
           editId={initial.editId}

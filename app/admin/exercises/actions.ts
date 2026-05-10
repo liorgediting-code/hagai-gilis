@@ -12,6 +12,7 @@ import { exerciseContentSchema } from "@/lib/types/exercise-types";
 const exerciseMetaSchema = z.object({
   lesson_id: z.string().uuid("מזהה שיעור לא תקין"),
   title: z.string().min(1, "כותרת נדרשת").max(200, "כותרת ארוכה מדי"),
+  level: z.coerce.number().int().min(1, "רמה לא תקינה").max(3, "רמה לא תקינה"),
   description: z.string().max(2000).optional(),
   order_index: z.coerce.number().int().min(0, "סדר לא תקין"),
   content_json: z.string().min(1, "תוכן תרגיל נדרש"),
@@ -45,6 +46,7 @@ export async function createExerciseAction(
   const parsed = exerciseMetaSchema.safeParse({
     lesson_id: formData.get("lesson_id"),
     title: formData.get("title"),
+    level: formData.get("level"),
     description: formData.get("description") || undefined,
     order_index: formData.get("order_index"),
     content_json: formData.get("content_json"),
@@ -64,6 +66,7 @@ export async function createExerciseAction(
   const { error } = await supabase.from("exercises").insert({
     lesson_id: parsed.data.lesson_id,
     title: parsed.data.title,
+    level: parsed.data.level,
     description: parsed.data.description ?? null,
     order_index: parsed.data.order_index,
     content_json: content.data,
@@ -72,7 +75,6 @@ export async function createExerciseAction(
   if (error) return { status: "error", error: "שגיאה ביצירת התרגיל — נסה שנית" };
 
   revalidatePath("/admin/exercises");
-  revalidatePath("/exercises");
   return { status: "success" };
 }
 
@@ -90,6 +92,7 @@ export async function updateExerciseAction(
   const parsed = exerciseMetaSchema.safeParse({
     lesson_id: formData.get("lesson_id"),
     title: formData.get("title"),
+    level: formData.get("level"),
     description: formData.get("description") || undefined,
     order_index: formData.get("order_index"),
     content_json: formData.get("content_json"),
@@ -111,6 +114,7 @@ export async function updateExerciseAction(
     .update({
       lesson_id: parsed.data.lesson_id,
       title: parsed.data.title,
+      level: parsed.data.level,
       description: parsed.data.description ?? null,
       order_index: parsed.data.order_index,
       content_json: content.data,
@@ -120,7 +124,7 @@ export async function updateExerciseAction(
   if (error) return { status: "error", error: "שגיאה בעדכון התרגיל — נסה שנית" };
 
   revalidatePath("/admin/exercises");
-  revalidatePath(`/exercises/${id}`);
+  revalidatePath(`/admin/exercises/${id}`);
   return { status: "success" };
 }
 
@@ -141,7 +145,6 @@ export async function deleteExerciseAction(
   if (error) return { status: "error", error: "שגיאה במחיקת התרגיל — נסה שנית" };
 
   revalidatePath("/admin/exercises");
-  revalidatePath("/exercises");
   return { status: "success" };
 }
 
