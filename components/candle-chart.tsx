@@ -3,6 +3,11 @@
 import { useRef, useState } from "react";
 import type { CandleData } from "@/lib/types/course-types";
 import type { PriceLine, AcceptanceZone } from "@/lib/types/exercise-types";
+import {
+  scaleY as scaleYUtil,
+  svgYToPrice as svgYToPriceUtil,
+  svgXToCandleIndex as svgXToCandleIndexUtil,
+} from "@/lib/utils/chart-coordinate-utils";
 
 interface CandleChartProps {
   candles: CandleData[];
@@ -84,9 +89,10 @@ export function CandleChart({
   const slotW = chartW / candles.length;
   const bodyW = Math.max(4, slotW * 0.6);
 
-  function scaleY(price: number): number {
-    return PAD_Y + chartH - ((price - minPrice) / totalRange) * chartH;
-  }
+  const scaleY = (price: number) => scaleYUtil(price, minPrice, totalRange, H, PAD_Y, chartH);
+  const svgYToPrice = (svgY: number) => svgYToPriceUtil(svgY, maxPrice, totalRange, PAD_Y, chartH);
+  const svgXToCandleIndex = (svgX: number) =>
+    svgXToCandleIndexUtil(svgX, PAD_X, slotW, candles.length);
 
   function svgCoords(e: React.MouseEvent<SVGSVGElement>): { x: number; y: number } {
     const rect = svgRef.current!.getBoundingClientRect();
@@ -94,15 +100,6 @@ export function CandleChart({
       x: ((e.clientX - rect.left) / rect.width) * W,
       y: ((e.clientY - rect.top) / rect.height) * H,
     };
-  }
-
-  function svgXToCandleIndex(svgX: number): number {
-    const relX = svgX - PAD_X;
-    return Math.max(0, Math.min(candles.length - 1, Math.floor(relX / slotW)));
-  }
-
-  function svgYToPrice(svgY: number): number {
-    return maxPrice - ((svgY - PAD_Y) / chartH) * totalRange;
   }
 
   function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
