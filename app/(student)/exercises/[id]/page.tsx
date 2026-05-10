@@ -9,6 +9,13 @@ import { requirePageAccess } from "@/lib/auth/check-page-access";
 import { Card, CardContent } from "@/components/ui/card";
 import { SubmitExerciseButton } from "./_components/submit-exercise-button";
 import { ChartExercise } from "./_components/chart-exercise";
+import { MultipleChoiceExercise } from "./_components/multiple-choice-exercise";
+import { LegacyCandleSelectExercise } from "./_components/legacy-candle-select-exercise";
+import type {
+  ExerciseContent,
+  SanitizedChartClickExercise,
+  SanitizedMultipleChoiceExercise,
+} from "@/lib/types/exercise-types";
 import type { ExerciseRow, LessonRow, LessonProgressRow, ExerciseSubmissionRow, CandleChartExercise } from "@/lib/types/course-types";
 
 function isCandleChart(v: unknown): v is CandleChartExercise {
@@ -17,6 +24,18 @@ function isCandleChart(v: unknown): v is CandleChartExercise {
     v !== null &&
     (v as Record<string, unknown>).type === "candle_chart_select"
   );
+}
+
+function sanitize(content: ExerciseContent): SanitizedChartClickExercise | SanitizedMultipleChoiceExercise | null {
+  if (content.type === "chart_click") {
+    const { acceptance_zone: _z, ...safe } = content;
+    return safe;
+  }
+  if (content.type === "multiple_choice") {
+    const { correct_option_index: _c, ...safe } = content;
+    return safe;
+  }
+  return null;
 }
 
 interface ExercisePageProps {
@@ -61,6 +80,8 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
     .limit(1)) as { data: Pick<ExerciseSubmissionRow, "id">[] | null; error: unknown };
 
   const hasSubmitted = (submissions ?? []).length > 0;
+  const rawContent = exercise.content_json;
+  const content = rawContent as ExerciseContent | null;
 
   return (
     <div className="space-y-6">
@@ -89,19 +110,36 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
         </Card>
       )}
 
-      {isCandleChart(exercise.content_json) ? (
+      {content?.type === "chart_click" && (
         <ChartExercise
           exerciseId={id}
-          chartData={exercise.content_json}
+          chartData={sanitize(content) as SanitizedChartClickExercise}
           hasSubmitted={hasSubmitted}
         />
-      ) : (
+      )}
+
+      {content?.type === "multiple_choice" && (
+        <MultipleChoiceExercise
+          exerciseId={id}
+          chartData={sanitize(content) as SanitizedMultipleChoiceExercise}
+          hasSubmitted={hasSubmitted}
+        />
+      )}
+
+      {isCandleChart(rawContent) && (
+        <LegacyCandleSelectExercise
+          exerciseId={id}
+          chartData={rawContent}
+          hasSubmitted={hasSubmitted}
+        />
+      )}
+
+      {content !== null && content?.type !== "chart_click" && content?.type !== "multiple_choice" && !isCandleChart(rawContent) && (
         <>
           <Card>
             <CardContent className="flex min-h-64 items-center justify-center pt-6">
               <div className="text-center space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">גרף אינטראקטיבי</p>
-                <p className="text-xs text-muted-foreground/60">ייבנה בשלב הבא</p>
+                <p className="text-sm font-medium text-muted-foreground">סוג תרגיל זה אינו נתמך עדיין</p>
               </div>
             </CardContent>
           </Card>
