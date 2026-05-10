@@ -27,6 +27,7 @@ export function computePriceRange(prices: number[]): {
   maxPrice: number;
   totalRange: number;
 } {
+  if (prices.length === 0) return { minPrice: 0, maxPrice: 100, totalRange: 100 };
   const rawMin = Math.min(...prices);
   const rawMax = Math.max(...prices);
   const priceRange = rawMax - rawMin || 1;
