@@ -107,6 +107,13 @@ export async function submitExerciseAttempt(
     const questions = typedContent.questions;
     const selectedIndices = parsed.data.selected_option_indices;
 
+    if (selectedIndices.length !== questions.length) {
+      return {
+        status: "error" as const,
+        error: "מספר התשובות אינו תואם את מספר השאלות",
+      };
+    }
+
     const correctCount = questions.reduce((count, q, i) => {
       return selectedIndices[i] === q.correct_option_index ? count + 1 : count;
     }, 0);
