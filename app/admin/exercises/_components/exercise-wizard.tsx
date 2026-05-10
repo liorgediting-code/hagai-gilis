@@ -4,10 +4,10 @@ import { useState } from "react";
 import { WizardStep1Type } from "./wizard-step-1-type";
 import { WizardStep2Data } from "./wizard-step-2-data";
 import { WizardStep3Zone } from "./wizard-step-3-zone";
-import { WizardStep3Options } from "./wizard-step-3-options";
+import { WizardStep3Quiz } from "./wizard-step-3-quiz";
 import { WizardStep4Question } from "./wizard-step-4-question";
 import type { CandleData } from "@/lib/types/course-types";
-import type { PriceLine, AcceptanceZone, ChartClickExercise, MultipleChoiceExercise } from "@/lib/types/exercise-types";
+import type { PriceLine, AcceptanceZone, ChartClickExercise, MultipleChoiceExercise, MultipleChoiceQuestion } from "@/lib/types/exercise-types";
 
 interface LessonOption {
   id: string;
@@ -24,6 +24,7 @@ interface WizardInitialData {
   acceptanceZone?: AcceptanceZone;
   options?: [string, string, string, string];
   correctOptionIndex?: 0 | 1 | 2 | 3;
+  questions?: MultipleChoiceQuestion[];
   title?: string;
   question?: string;
   explanation?: string;
@@ -54,6 +55,7 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
   const [correctOptionIndex, setCorrectOptionIndex] = useState<0 | 1 | 2 | 3 | null>(
     initial.correctOptionIndex ?? null
   );
+  const [questions, setQuestions] = useState<MultipleChoiceQuestion[]>(initial.questions ?? []);
   const [title, setTitle] = useState(initial.title ?? "");
   const [question, setQuestion] = useState(initial.question ?? "");
   const [explanation, setExplanation] = useState(initial.explanation ?? "");
@@ -78,13 +80,10 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
     } else {
       const ex: MultipleChoiceExercise = {
         type: "multiple_choice",
-        question,
         candles,
         support_levels: supportLevels,
         resistance_levels: resistanceLevels,
-        options,
-        correct_option_index: correctOptionIndex!,
-        explanation,
+        questions,
         ...(timeframe ? { timeframe } : {}),
       };
       return JSON.stringify(ex);
@@ -156,14 +155,13 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
       )}
 
       {step === 2 && exType === "multiple_choice" && (
-        <WizardStep3Options
+        <WizardStep3Quiz
           candles={candles}
           supportLevels={supportLevels}
           resistanceLevels={resistanceLevels}
-          options={options}
-          correctOptionIndex={correctOptionIndex}
           timeframe={timeframe}
-          onUpdate={(opts, idx) => { setOptions(opts); setCorrectOptionIndex(idx); }}
+          questions={questions}
+          onUpdate={setQuestions}
           onNext={() => setStep(3)}
           onBack={() => setStep(1)}
         />
