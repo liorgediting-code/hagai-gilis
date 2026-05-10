@@ -6,8 +6,15 @@ import { asUntyped } from "@/lib/supabase/untyped";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PermissionToggle } from "./_components/permission-toggle";
+import { LessonUnlockControls } from "./_components/lesson-unlock-controls";
 import type { Tables } from "@/lib/types/database";
-import type { UserPermissionRow, LessonProgressRow, LessonRow } from "@/lib/types/course-types";
+import type {
+  UserPermissionRow,
+  LessonProgressRow,
+  LessonRow,
+  LessonUnlockRow,
+  ExerciseSubmissionRow,
+} from "@/lib/types/course-types";
 
 type Profile = Tables<"profiles">;
 
@@ -35,37 +42,80 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
   const supabase = await createClient();
   const db = asUntyped(supabase);
 
-  const { data: profile } = (await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", id)
-    .eq("role", "student")
-    .single()) as { data: Profile | null; error: unknown };
+  const [
+    { data: profile },
+    { data: deniedRows },
+    { data: progress },
+    { data: lessons },
+    { data: unlockRows },
+    { data: passedL3Subs },
+    { data: l3ExercisesData },
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", id)
+      .eq("role", "student")
+      .single() as unknown as Promise<{ data: Profile | null }>,
+    db
+      .from("user_permissions")
+      .select("*")
+      .eq("user_id", id) as unknown as Promise<{ data: UserPermissionRow[] | null }>,
+    db
+      .from("lesson_progress")
+      .select("*")
+      .eq("user_id", id) as unknown as Promise<{ data: LessonProgressRow[] | null }>,
+    db
+      .from("lessons")
+      .select("id, title, order_index")
+      .order("order_index") as unknown as Promise<{
+      data: Pick<LessonRow, "id" | "title" | "order_index">[] | null;
+    }>,
+    db
+      .from("lesson_unlocks")
+      .select("lesson_id")
+      .eq("user_id", id) as unknown as Promise<{
+      data: Pick<LessonUnlockRow, "lesson_id">[] | null;
+    }>,
+    db
+      .from("exercise_submissions")
+      .select("exercise_id, passed")
+      .eq("user_id", id)
+      .eq("passed", true) as unknown as Promise<{
+      data: Pick<ExerciseSubmissionRow, "exercise_id" | "passed">[] | null;
+    }>,
+    db
+      .from("exercises")
+      .select("id, lesson_id")
+      .eq("level", 3) as unknown as Promise<{
+      data: { id: string; lesson_id: string }[] | null;
+    }>,
+  ]);
 
   if (!profile) notFound();
 
-  const { data: deniedRows } = (await db
-    .from("user_permissions")
-    .select("*")
-    .eq("user_id", id)) as { data: UserPermissionRow[] | null; error: unknown };
-
   const denied = new Set((deniedRows ?? []).map((r) => r.page));
 
-  const { data: progress } = (await db
-    .from("lesson_progress")
-    .select("*")
-    .eq("user_id", id)) as { data: LessonProgressRow[] | null; error: unknown };
-
-  const { data: lessons } = (await db
-    .from("lessons")
-    .select("id, title")
-    .order("order_index")) as { data: Pick<LessonRow, "id" | "title">[] | null; error: unknown };
-
-  const progressMap = new Map(
-    (progress ?? []).map((p) => [p.lesson_id, p]),
-  );
+  const progressMap = new Map((progress ?? []).map((p) => [p.lesson_id, p]));
 
   const completedCount = (progress ?? []).filter((p) => p.completed_at !== null).length;
+
+  const manualUnlockSet = new Set((unlockRows ?? []).map((r) => r.lesson_id));
+  const passedL3ExIds = new Set(
+    (passedL3Subs ?? []).filter((s) => s.passed).map((s) => s.exercise_id),
+  );
+  const lessonsWithPassedL3 = new Set(
+    (l3ExercisesData ?? []).filter((e) => passedL3ExIds.has(e.id)).map((e) => e.lesson_id),
+  );
+
+  function getLockStatus(lesson: Pick<LessonRow, "id" | "order_index">): "auto" | "manual" | "locked" {
+    if (lesson.order_index === 0) return "auto";
+    if (manualUnlockSet.has(lesson.id)) return "manual";
+    const allLessons = lessons ?? [];
+    const prev = allLessons.find((l) => l.order_index === lesson.order_index - 1);
+    if (prev && lessonsWithPassedL3.has(prev.id)) return "auto";
+    return "locked";
+  }
 
   return (
     <div className="space-y-6">
@@ -149,6 +199,39 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
                     ) : (
                       <span className="text-xs text-muted-foreground">לא נצפה</span>
                     )}
+                  </li>
+                );
+              })}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Lesson unlock controls */}
+      {(lessons ?? []).length > 0 && (
+        <Card>
+          <CardHeader className="border-b border-border/50 pb-4">
+            <CardTitle className="text-base font-semibold">גישה לשיעורים</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ul className="divide-y divide-border/30">
+              {(lessons ?? []).map((lesson) => {
+                const status = getLockStatus(lesson);
+                return (
+                  <li key={lesson.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-foreground">{lesson.title}</span>
+                      {status === "locked" && (
+                        <span className="text-xs text-muted-foreground">🔒</span>
+                      )}
+                      {status === "auto" && (
+                        <span className="text-xs text-primary">✓ פתוח</span>
+                      )}
+                      {status === "manual" && (
+                        <span className="text-xs text-amber-500">פתוח ידנית</span>
+                      )}
+                    </div>
+                    <LessonUnlockControls userId={id} lessonId={lesson.id} lockStatus={status} />
                   </li>
                 );
               })}
