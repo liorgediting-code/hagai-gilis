@@ -12,12 +12,13 @@ interface Props {
   resistanceLevels: PriceLine[];
   zone: AcceptanceZone | null;
   onZoneDraw: (zone: AcceptanceZone) => void;
+  timeframe?: string;
   onNext: () => void;
   onBack: () => void;
 }
 
 export function WizardStep3Zone({
-  candles, supportLevels, resistanceLevels, zone, onZoneDraw, onNext, onBack,
+  candles, supportLevels, resistanceLevels, zone, onZoneDraw, timeframe, onNext, onBack,
 }: Props) {
   return (
     <div className="space-y-6">
@@ -42,6 +43,7 @@ export function WizardStep3Zone({
               resistanceLevels={resistanceLevels}
               acceptanceZone={zone}
               onZoneDraw={onZoneDraw}
+              timeframe={timeframe}
             />
           )}
         </CardContent>

@@ -74,6 +74,7 @@ export function ChartExercise({ exerciseId, chartData, hasSubmitted }: Props) {
             resistanceLevels={chartData.resistance_levels}
             selectedPoint={locked ? null : selectedPoint}
             onPointClick={locked ? undefined : handlePointClick}
+            timeframe={chartData.timeframe}
           />
         </CardContent>
       </Card>

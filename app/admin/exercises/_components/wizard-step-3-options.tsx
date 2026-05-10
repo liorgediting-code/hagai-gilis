@@ -14,6 +14,7 @@ interface Props {
   resistanceLevels: PriceLine[];
   options: [string, string, string, string];
   correctOptionIndex: 0 | 1 | 2 | 3 | null;
+  timeframe?: string;
   onUpdate: (options: [string, string, string, string], correctIndex: 0 | 1 | 2 | 3) => void;
   onNext: () => void;
   onBack: () => void;
@@ -21,7 +22,7 @@ interface Props {
 
 export function WizardStep3Options({
   candles, supportLevels, resistanceLevels,
-  options, correctOptionIndex, onUpdate, onNext, onBack,
+  options, correctOptionIndex, timeframe, onUpdate, onNext, onBack,
 }: Props) {
   function setOption(i: number, value: string) {
     const next = [...options] as [string, string, string, string];
@@ -52,6 +53,7 @@ export function WizardStep3Options({
             mode="view-only"
             supportLevels={supportLevels}
             resistanceLevels={resistanceLevels}
+            timeframe={timeframe}
           />
         </CardContent>
       </Card>

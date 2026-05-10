@@ -29,6 +29,7 @@ interface WizardInitialData {
   explanation?: string;
   lessonId?: string;
   orderIndex?: number;
+  timeframe?: string;
 }
 
 interface Props {
@@ -57,6 +58,7 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
   const [explanation, setExplanation] = useState(initial.explanation ?? "");
   const [lessonId, setLessonId] = useState(initial.lessonId ?? "");
   const [orderIndex, setOrderIndex] = useState(initial.orderIndex ?? 0);
+  const [timeframe, setTimeframe] = useState(initial.timeframe ?? "");
 
   function buildContentJson(): string {
     if (exType === "chart_click") {
@@ -68,6 +70,7 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
         resistance_levels: resistanceLevels,
         acceptance_zone: zone!,
         explanation,
+        ...(timeframe ? { timeframe } : {}),
       };
       return JSON.stringify(ex);
     } else {
@@ -80,6 +83,7 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
         options,
         correct_option_index: correctOptionIndex!,
         explanation,
+        ...(timeframe ? { timeframe } : {}),
       };
       return JSON.stringify(ex);
     }
@@ -121,11 +125,13 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
           candles={candles}
           supportLevels={supportLevels}
           resistanceLevels={resistanceLevels}
+          timeframe={timeframe}
           onUpdate={(data) => {
             setCsvRaw(data.csvRaw);
             setCandles(data.candles);
             setSupportLevels(data.supportLevels);
             setResistanceLevels(data.resistanceLevels);
+            setTimeframe(data.timeframe);
           }}
           onNext={() => setStep(2)}
           onBack={() => setStep(0)}
@@ -139,6 +145,7 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
           resistanceLevels={resistanceLevels}
           zone={zone}
           onZoneDraw={setZone}
+          timeframe={timeframe}
           onNext={() => setStep(3)}
           onBack={() => setStep(1)}
         />
@@ -151,6 +158,7 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
           resistanceLevels={resistanceLevels}
           options={options}
           correctOptionIndex={correctOptionIndex}
+          timeframe={timeframe}
           onUpdate={(opts, idx) => { setOptions(opts); setCorrectOptionIndex(idx); }}
           onNext={() => setStep(3)}
           onBack={() => setStep(1)}

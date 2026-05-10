@@ -20,6 +20,7 @@ export type ChartClickExercise = {
   candles: CandleData[];
   support_levels: PriceLine[];
   resistance_levels: PriceLine[];
+  timeframe?: string;
   acceptance_zone: AcceptanceZone;
   explanation: string;
 };
@@ -30,6 +31,7 @@ export type MultipleChoiceExercise = {
   candles: CandleData[];
   support_levels: PriceLine[];
   resistance_levels: PriceLine[];
+  timeframe?: string;
   options: [string, string, string, string];
   correct_option_index: 0 | 1 | 2 | 3;
   explanation: string;
@@ -99,6 +101,7 @@ export const chartClickSchema = z.object({
   candles: z.array(candleDataSchema).min(3, "נדרשים לפחות 3 נרות"),
   support_levels: z.array(priceLineSchema),
   resistance_levels: z.array(priceLineSchema),
+  timeframe: z.string().optional(),
   acceptance_zone: acceptanceZoneSchema,
   explanation: z.string().min(1, "הסבר נדרש"),
 });
@@ -109,6 +112,7 @@ export const multipleChoiceSchema = z.object({
   candles: z.array(candleDataSchema).min(3, "נדרשים לפחות 3 נרות"),
   support_levels: z.array(priceLineSchema),
   resistance_levels: z.array(priceLineSchema),
+  timeframe: z.string().optional(),
   options: z.tuple([
     z.string().min(1, "אפשרות א נדרשת"),
     z.string().min(1, "אפשרות ב נדרשת"),

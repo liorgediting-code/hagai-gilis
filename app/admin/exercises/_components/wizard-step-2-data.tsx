@@ -13,31 +13,39 @@ interface Props {
   candles: CandleData[];
   supportLevels: PriceLine[];
   resistanceLevels: PriceLine[];
+  timeframe: string;
   onUpdate: (data: {
     csvRaw: string;
     candles: CandleData[];
     supportLevels: PriceLine[];
     resistanceLevels: PriceLine[];
+    timeframe: string;
   }) => void;
   onNext: () => void;
   onBack: () => void;
 }
 
 export function WizardStep2Data({
-  csvRaw, candles, supportLevels, resistanceLevels, onUpdate, onNext, onBack,
+  csvRaw, candles, supportLevels, resistanceLevels, timeframe, onUpdate, onNext, onBack,
 }: Props) {
   const [csv, setCsv] = useState(csvRaw);
   const [parseErrors, setParseErrors] = useState<string[]>([]);
   const [supports, setSupports] = useState<PriceLine[]>(supportLevels);
   const [resistances, setResistances] = useState<PriceLine[]>(resistanceLevels);
   const [localCandleCount, setLocalCandleCount] = useState(candles.length);
+  const [localTimeframe, setLocalTimeframe] = useState(timeframe);
 
   function handleCsvChange(raw: string) {
     setCsv(raw);
     const { candles: parsed, errors } = parseCandleCSV(raw);
     setParseErrors(errors);
     setLocalCandleCount(parsed.length);
-    onUpdate({ csvRaw: raw, candles: parsed, supportLevels: supports, resistanceLevels: resistances });
+    onUpdate({ csvRaw: raw, candles: parsed, supportLevels: supports, resistanceLevels: resistances, timeframe: localTimeframe });
+  }
+
+  function handleTimeframeChange(val: string) {
+    setLocalTimeframe(val);
+    onUpdate({ csvRaw: csv, candles, supportLevels: supports, resistanceLevels: resistances, timeframe: val });
   }
 
   function addLine(type: "support" | "resistance") {
@@ -45,11 +53,11 @@ export function WizardStep2Data({
     if (type === "support") {
       const next = [...supports, line];
       setSupports(next);
-      onUpdate({ csvRaw: csv, candles, supportLevels: next, resistanceLevels: resistances });
+      onUpdate({ csvRaw: csv, candles, supportLevels: next, resistanceLevels: resistances, timeframe: localTimeframe });
     } else {
       const next = [...resistances, line];
       setResistances(next);
-      onUpdate({ csvRaw: csv, candles, supportLevels: supports, resistanceLevels: next });
+      onUpdate({ csvRaw: csv, candles, supportLevels: supports, resistanceLevels: next, timeframe: localTimeframe });
     }
   }
 
@@ -61,11 +69,11 @@ export function WizardStep2Data({
     if (type === "support") {
       const next = update(supports);
       setSupports(next);
-      onUpdate({ csvRaw: csv, candles, supportLevels: next, resistanceLevels: resistances });
+      onUpdate({ csvRaw: csv, candles, supportLevels: next, resistanceLevels: resistances, timeframe: localTimeframe });
     } else {
       const next = update(resistances);
       setResistances(next);
-      onUpdate({ csvRaw: csv, candles, supportLevels: supports, resistanceLevels: next });
+      onUpdate({ csvRaw: csv, candles, supportLevels: supports, resistanceLevels: next, timeframe: localTimeframe });
     }
   }
 
@@ -73,11 +81,11 @@ export function WizardStep2Data({
     if (type === "support") {
       const next = supports.filter((_, i) => i !== index);
       setSupports(next);
-      onUpdate({ csvRaw: csv, candles, supportLevels: next, resistanceLevels: resistances });
+      onUpdate({ csvRaw: csv, candles, supportLevels: next, resistanceLevels: resistances, timeframe: localTimeframe });
     } else {
       const next = resistances.filter((_, i) => i !== index);
       setResistances(next);
-      onUpdate({ csvRaw: csv, candles, supportLevels: supports, resistanceLevels: next });
+      onUpdate({ csvRaw: csv, candles, supportLevels: supports, resistanceLevels: next, timeframe: localTimeframe });
     }
   }
 
@@ -90,6 +98,26 @@ export function WizardStep2Data({
         <p className="mt-1 text-sm text-muted-foreground">
           הדבק נתוני נרות בפורמט CSV: תאריך,פתיחה,גבוה,נמוך,סגירה
         </p>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">טיים פריים</label>
+        <select
+          value={localTimeframe}
+          onChange={(e) => handleTimeframeChange(e.target.value)}
+          className="w-40 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+          dir="ltr"
+        >
+          <option value="">ללא</option>
+          <option value="1m">1m</option>
+          <option value="5m">5m</option>
+          <option value="15m">15m</option>
+          <option value="30m">30m</option>
+          <option value="1H">1H</option>
+          <option value="4H">4H</option>
+          <option value="1D">1D</option>
+          <option value="1W">1W</option>
+        </select>
       </div>
 
       <div className="space-y-2">
@@ -119,6 +147,7 @@ export function WizardStep2Data({
               mode="view-only"
               supportLevels={supports}
               resistanceLevels={resistances}
+              timeframe={localTimeframe || undefined}
             />
           </CardContent>
         </Card>

@@ -62,6 +62,7 @@ export function MultipleChoiceExercise({ exerciseId, chartData, hasSubmitted }: 
             mode="view-only"
             supportLevels={chartData.support_levels}
             resistanceLevels={chartData.resistance_levels}
+            timeframe={chartData.timeframe}
           />
         </CardContent>
       </Card>

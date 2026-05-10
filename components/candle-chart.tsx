@@ -34,6 +34,7 @@ interface CandleChartProps {
   correctIndex?: number | null;
   showSolution?: boolean;
   onCandleClick?: (index: number) => void;
+  timeframe?: string;
 }
 
 const W = 800;
@@ -56,6 +57,7 @@ export function CandleChart({
   correctIndex,
   showSolution = false,
   onCandleClick,
+  timeframe,
 }: CandleChartProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoverSVG, setHoverSVG] = useState<{ x: number; y: number } | null>(null);
@@ -194,6 +196,12 @@ export function CandleChart({
           x={hoverSVG.x} y={hoverSVG.y}
           PAD_X={PAD_X} W={W} PAD_Y={PAD_Y} H={H}
         />
+      )}
+
+      {timeframe && (
+        <text x={PAD_X + 6} y={PAD_Y - 8} fontSize={11} fill="#f97316" fillOpacity={0.9} fontWeight="bold">
+          {timeframe}
+        </text>
       )}
     </svg>
   );
