@@ -7,29 +7,29 @@ import {
   scaleY as scaleYUtil,
   svgYToPrice as svgYToPriceUtil,
   svgXToCandleIndex as svgXToCandleIndexUtil,
+  computePriceRange,
 } from "@/lib/utils/chart-coordinate-utils";
+import {
+  ChartGrid,
+  PriceLines,
+  AcceptanceZoneOverlay,
+  SelectedPointMarker,
+  Crosshair,
+  CandleList,
+} from "./_chart-overlays";
 
 interface CandleChartProps {
   candles: CandleData[];
   mode?: "view-only" | "student-click" | "admin-draw";
-
-  // Price lines (new array format)
   supportLevels?: PriceLine[];
   resistanceLevels?: PriceLine[];
-
-  // Legacy single-level props (kept for candle_chart_select backwards compat)
+  /** Legacy single-level props kept for candle_chart_select backwards compat */
   resistanceLevel?: number;
   supportLevel?: number;
-
-  // student-click mode
   selectedPoint?: { price: number; candleIndex: number } | null;
   onPointClick?: (price: number, candleIndex: number) => void;
-
-  // admin-draw mode
   acceptanceZone?: AcceptanceZone | null;
   onZoneDraw?: (zone: AcceptanceZone) => void;
-
-  // Legacy candle_chart_select props
   selectedIndex?: number | null;
   correctIndex?: number | null;
   showSolution?: boolean;
@@ -65,41 +65,26 @@ export function CandleChart({
   const chartW = W - PAD_X * 2;
   const chartH = H - PAD_Y * 2;
 
-  const allSupportLevels: PriceLine[] = [
-    ...supportLevels,
-    ...(supportLevel !== undefined ? [{ price: supportLevel }] : []),
+  const allSupportLevels: PriceLine[] = supportLevel !== undefined
+    ? [...supportLevels, { price: supportLevel }] : supportLevels;
+  const allResistanceLevels: PriceLine[] = resistanceLevel !== undefined
+    ? [...resistanceLevels, { price: resistanceLevel }] : resistanceLevels;
+
+  const allPrices = [
+    ...candles.flatMap((c) => [c.high, c.low]),
+    ...allSupportLevels.map((l) => l.price),
+    ...allResistanceLevels.map((l) => l.price),
   ];
-  const allResistanceLevels: PriceLine[] = [
-    ...resistanceLevels,
-    ...(resistanceLevel !== undefined ? [{ price: resistanceLevel }] : []),
-  ];
-
-  const allPrices = candles.flatMap((c) => [c.high, c.low]);
-  allSupportLevels.forEach((l) => allPrices.push(l.price));
-  allResistanceLevels.forEach((l) => allPrices.push(l.price));
-
-  const rawMin = Math.min(...allPrices);
-  const rawMax = Math.max(...allPrices);
-  const priceRange = rawMax - rawMin || 1;
-  const paddingAmt = priceRange * 0.06;
-  const minPrice = rawMin - paddingAmt;
-  const maxPrice = rawMax + paddingAmt;
-  const totalRange = maxPrice - minPrice;
-
+  const { minPrice, maxPrice, totalRange } = computePriceRange(allPrices);
   const slotW = chartW / candles.length;
   const bodyW = Math.max(4, slotW * 0.6);
 
   const scaleY = (price: number) => scaleYUtil(price, minPrice, totalRange, H, PAD_Y, chartH);
   const svgYToPrice = (svgY: number) => svgYToPriceUtil(svgY, maxPrice, totalRange, PAD_Y, chartH);
-  const svgXToCandleIndex = (svgX: number) =>
-    svgXToCandleIndexUtil(svgX, PAD_X, slotW, candles.length);
-
-  function svgCoords(e: React.MouseEvent<SVGSVGElement>): { x: number; y: number } {
+  const svgXToCandleIndex = (svgX: number) => svgXToCandleIndexUtil(svgX, PAD_X, slotW, candles.length);
+  function svgCoords(e: React.MouseEvent<SVGSVGElement>) {
     const rect = svgRef.current!.getBoundingClientRect();
-    return {
-      x: ((e.clientX - rect.left) / rect.width) * W,
-      y: ((e.clientY - rect.top) / rect.height) * H,
-    };
+    return { x: ((e.clientX - rect.left) / rect.width) * W, y: ((e.clientY - rect.top) / rect.height) * H };
   }
 
   function handleMouseMove(e: React.MouseEvent<SVGSVGElement>) {
@@ -145,24 +130,15 @@ export function CandleChart({
     }
   }
 
-  const gridPrices = [0.25, 0.5, 0.75].map(
-    (f) => minPrice + totalRange * f,
-  );
-
-  const zoneToDraw: AcceptanceZone | null = (() => {
-    if (dragStart && dragCurrent) {
-      return {
+  const zoneToDraw: AcceptanceZone | null = (dragStart && dragCurrent)
+    ? {
         start_candle_index: svgXToCandleIndex(Math.min(dragStart.x, dragCurrent.x)),
         end_candle_index: svgXToCandleIndex(Math.max(dragStart.x, dragCurrent.x)),
         min_price: svgYToPrice(Math.max(dragStart.y, dragCurrent.y)),
         max_price: svgYToPrice(Math.min(dragStart.y, dragCurrent.y)),
-      };
-    }
-    return acceptanceZone ?? null;
-  })();
-
-  const cursorStyle =
-    mode === "student-click" || mode === "admin-draw" ? "crosshair" : "default";
+      }
+    : (acceptanceZone ?? null);
+  const cursorStyle = mode === "student-click" || mode === "admin-draw" ? "crosshair" : "default";
 
   return (
     <svg
@@ -177,137 +153,47 @@ export function CandleChart({
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
     >
-      {/* Grid */}
-      {gridPrices.map((price) => {
-        const y = scaleY(price);
-        return (
-          <g key={price}>
-            <line x1={PAD_X} y1={y} x2={W - PAD_X} y2={y}
-              stroke="currentColor" strokeWidth={0.5} strokeDasharray="4 4" strokeOpacity={0.2} />
-            <text x={W - PAD_X - 2} y={y - 3} textAnchor="end"
-              fontSize={9} fill="currentColor" fillOpacity={0.45}>
-              {price.toFixed(0)}
-            </text>
-          </g>
-        );
-      })}
+      <ChartGrid
+        minPrice={minPrice} totalRange={totalRange}
+        H={H} W={W} PAD_X={PAD_X} PAD_Y={PAD_Y} chartH={chartH}
+      />
 
-      {/* Resistance lines */}
-      {allResistanceLevels.map((line, i) => (
-        <g key={`r${i}`}>
-          <line x1={PAD_X} y1={scaleY(line.price)} x2={W - PAD_X} y2={scaleY(line.price)}
-            stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 3" />
-          <text x={PAD_X + 4} y={scaleY(line.price) - 4} textAnchor="start"
-            fontSize={9} fill="#ef4444" fillOpacity={0.85}>
-            {line.label ?? `התנגדות ${line.price.toFixed(0)}`}
-          </text>
-        </g>
-      ))}
+      <PriceLines
+        levels={allResistanceLevels} color="#ef4444"
+        defaultLabelPrefix="התנגדות" labelOffset={-4}
+        PAD_X={PAD_X} W={W} scaleYFn={scaleY}
+      />
 
-      {/* Support lines */}
-      {allSupportLevels.map((line, i) => (
-        <g key={`s${i}`}>
-          <line x1={PAD_X} y1={scaleY(line.price)} x2={W - PAD_X} y2={scaleY(line.price)}
-            stroke="#22c55e" strokeWidth={1.5} strokeDasharray="5 3" />
-          <text x={PAD_X + 4} y={scaleY(line.price) + 12} textAnchor="start"
-            fontSize={9} fill="#22c55e" fillOpacity={0.85}>
-            {line.label ?? `תמיכה ${line.price.toFixed(0)}`}
-          </text>
-        </g>
-      ))}
+      <PriceLines
+        levels={allSupportLevels} color="#22c55e"
+        defaultLabelPrefix="תמיכה" labelOffset={12}
+        PAD_X={PAD_X} W={W} scaleYFn={scaleY}
+      />
 
-      {/* Acceptance zone overlay */}
-      {zoneToDraw && candles.length > 0 && (() => {
-        const x1 = PAD_X + zoneToDraw.start_candle_index * slotW;
-        const x2 = PAD_X + (zoneToDraw.end_candle_index + 1) * slotW;
-        const y1 = scaleY(zoneToDraw.max_price);
-        const y2 = scaleY(zoneToDraw.min_price);
-        return (
-          <rect x={x1} y={y1} width={x2 - x1} height={y2 - y1}
-            fill="#22c55e" fillOpacity={0.15}
-            stroke="#22c55e" strokeWidth={2} strokeDasharray="6 3" rx={4} />
-        );
-      })()}
+      {zoneToDraw && candles.length > 0 && (
+        <AcceptanceZoneOverlay zone={zoneToDraw} slotW={slotW} PAD_X={PAD_X} scaleYFn={scaleY} />
+      )}
 
-      {/* Candles */}
-      {candles.map((candle, i) => {
-        const cx = PAD_X + i * slotW + slotW / 2;
-        const isGreen = candle.close >= candle.open;
-        const color = isGreen ? "#22c55e" : "#ef4444";
-        const bodyTop = scaleY(Math.max(candle.open, candle.close));
-        const bodyBottom = scaleY(Math.min(candle.open, candle.close));
-        const bodyH = Math.max(1, bodyBottom - bodyTop);
-        const wickTop = scaleY(candle.high);
-        const wickBottom = scaleY(candle.low);
+      <CandleList
+        candles={candles} slotW={slotW} bodyW={bodyW}
+        PAD_X={PAD_X} PAD_Y={PAD_Y} H={H} chartH={chartH}
+        selectedIndex={selectedIndex} correctIndex={correctIndex}
+        showSolution={showSolution} onCandleClick={onCandleClick}
+        scaleYFn={scaleY}
+      />
 
-        const isSelected = selectedIndex === i;
-        const isCorrect = correctIndex === i;
-        let legacyBg: string | null = null;
-        if (showSolution) {
-          if (isCorrect) legacyBg = "#22c55e";
-          else if (isSelected) legacyBg = "#ef4444";
-        } else if (isSelected) {
-          legacyBg = "#f97316";
-        }
+      {selectedPoint && mode === "student-click" && (
+        <SelectedPointMarker
+          point={selectedPoint} slotW={slotW}
+          PAD_X={PAD_X} H={H} PAD_Y={PAD_Y} W={W} scaleYFn={scaleY}
+        />
+      )}
 
-        return (
-          <g key={i}>
-            {legacyBg && (
-              <rect x={PAD_X + i * slotW} y={PAD_Y} width={slotW} height={chartH}
-                fill={legacyBg} fillOpacity={0.15} />
-            )}
-            <line x1={cx} y1={wickTop} x2={cx} y2={wickBottom}
-              stroke={color} strokeWidth={1.5} strokeOpacity={0.8} />
-            <rect x={cx - bodyW / 2} y={bodyTop} width={bodyW} height={bodyH}
-              fill={color} fillOpacity={0.8} />
-            {!showSolution && isSelected && (
-              <rect x={cx - bodyW / 2 - 1} y={bodyTop - 1} width={bodyW + 2} height={bodyH + 2}
-                fill="none" stroke="#f97316" strokeWidth={1.5} />
-            )}
-            {onCandleClick && (
-              <rect x={PAD_X + i * slotW} y={PAD_Y} width={slotW} height={chartH}
-                fill="transparent" style={{ cursor: "pointer" }}
-                onClick={() => onCandleClick(i)} aria-label={`נר ${i + 1}`} role="button" />
-            )}
-            {i % 5 === 0 && (
-              <text x={cx} y={H - 6} textAnchor="middle"
-                fontSize={9} fill="currentColor" fillOpacity={0.4}>
-                {candle.date}
-              </text>
-            )}
-          </g>
-        );
-      })}
-
-      {/* Student-click selected point marker */}
-      {selectedPoint && mode === "student-click" && (() => {
-        const cx = PAD_X + (selectedPoint.candleIndex + 0.5) * slotW;
-        const cy = scaleY(selectedPoint.price);
-        return (
-          <>
-            <line x1={cx} y1={PAD_Y} x2={cx} y2={H - PAD_Y}
-              stroke="#f97316" strokeWidth={1} strokeDasharray="4 3" strokeOpacity={0.7} />
-            <line x1={PAD_X} y1={cy} x2={W - PAD_X} y2={cy}
-              stroke="#f97316" strokeWidth={1} strokeDasharray="4 3" strokeOpacity={0.7} />
-            <circle cx={cx} cy={cy} r={6} fill="#f97316" stroke="white" strokeWidth={1.5} />
-            <rect x={W - PAD_X - 52} y={cy - 11} width={50} height={14}
-              fill="#f97316" rx={3} />
-            <text x={W - PAD_X - 27} y={cy} textAnchor="middle"
-              fontSize={9} fill="white">
-              &#8362;{selectedPoint.price.toFixed(1)}
-            </text>
-          </>
-        );
-      })()}
-
-      {/* Crosshair (hover) */}
       {hoverSVG && mode !== "view-only" && (
-        <>
-          <line x1={hoverSVG.x} y1={PAD_Y} x2={hoverSVG.x} y2={H - PAD_Y}
-            stroke="#f97316" strokeWidth={0.8} strokeDasharray="3 3" strokeOpacity={0.5} />
-          <line x1={PAD_X} y1={hoverSVG.y} x2={W - PAD_X} y2={hoverSVG.y}
-            stroke="#f97316" strokeWidth={0.8} strokeDasharray="3 3" strokeOpacity={0.5} />
-        </>
+        <Crosshair
+          x={hoverSVG.x} y={hoverSVG.y}
+          PAD_X={PAD_X} W={W} PAD_Y={PAD_Y} H={H}
+        />
       )}
     </svg>
   );

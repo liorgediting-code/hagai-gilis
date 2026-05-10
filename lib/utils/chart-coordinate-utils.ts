@@ -21,6 +21,21 @@ export function svgYToPrice(
   return maxPrice - ((svgY - PAD_Y) / chartH) * totalRange;
 }
 
+/** Computes padded min/max/totalRange from raw price arrays. */
+export function computePriceRange(prices: number[]): {
+  minPrice: number;
+  maxPrice: number;
+  totalRange: number;
+} {
+  const rawMin = Math.min(...prices);
+  const rawMax = Math.max(...prices);
+  const priceRange = rawMax - rawMin || 1;
+  const paddingAmt = priceRange * 0.06;
+  const minPrice = rawMin - paddingAmt;
+  const maxPrice = rawMax + paddingAmt;
+  return { minPrice, maxPrice, totalRange: maxPrice - minPrice };
+}
+
 /** Maps an SVG X coordinate to the nearest candle index. */
 export function svgXToCandleIndex(
   svgX: number,
