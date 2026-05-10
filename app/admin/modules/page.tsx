@@ -25,24 +25,24 @@ export default async function AdminModulesPage() {
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <FolderIcon className="size-6 text-primary" aria-hidden="true" />
-          <h1 className="font-heading text-2xl font-bold text-foreground">ניהול מודולים</h1>
+          <h1 className="font-heading text-2xl font-bold text-foreground">ניהול נושאים</h1>
         </div>
         <Link
           href="/admin/modules/new"
           className={buttonVariants({ className: "min-h-11" })}
         >
-          הוסף מודול
+          הוסף נושא
         </Link>
       </div>
 
       <Card>
         <CardHeader className="border-b border-border/50 pb-4">
-          <CardTitle className="text-base font-semibold">מודולים ({list.length})</CardTitle>
+          <CardTitle className="text-base font-semibold">נושאים ({list.length})</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {list.length === 0 ? (
             <p className="px-4 py-10 text-center text-sm text-muted-foreground">
-              עדיין אין מודולים. צור את המודול הראשון.
+              עדיין אין נושאים. צור את הנושא הראשון.
             </p>
           ) : (
             <ul className="divide-y divide-border/30">

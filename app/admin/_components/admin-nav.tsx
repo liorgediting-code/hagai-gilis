@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MenuIcon, XIcon, LayoutDashboardIcon, UsersIcon, FolderIcon, FileTextIcon, DumbbellIcon } from "lucide-react";
+import { MenuIcon, XIcon, LayoutDashboardIcon, UsersIcon, FolderIcon, FileTextIcon, DumbbellIcon, TrendingUpIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/app/(auth)/actions";
@@ -15,9 +15,10 @@ interface AdminNavProps {
 const navLinks = [
   { href: "/admin", label: "דשבורד", icon: LayoutDashboardIcon, exact: true },
   { href: "/admin/students", label: "תלמידים", icon: UsersIcon, exact: false },
-  { href: "/admin/modules", label: "ניהול קורסים", icon: FolderIcon, exact: false },
+  { href: "/admin/modules", label: "ניהול נושאים", icon: FolderIcon, exact: false },
   { href: "/admin/summaries", label: "סיכומים", icon: FileTextIcon, exact: false },
   { href: "/admin/exercises", label: "תרגולים", icon: DumbbellIcon, exact: false },
+  { href: "/admin/market", label: "מניות", icon: TrendingUpIcon, exact: false },
 ];
 
 function NavContent({
