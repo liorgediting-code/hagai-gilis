@@ -16,14 +16,14 @@ interface Props {
 
 export function ChartExercise({ exerciseId, chartData, hasSubmitted }: Props) {
   const [selectedPoint, setSelectedPoint] = useState<{ price: number; candleIndex: number } | null>(null);
-  const [result, setResult] = useState<ExerciseSubmitResult | null>(hasSubmitted ? { status: "success" } : null);
+  const [result, setResult] = useState<ExerciseSubmitResult | null>(null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const submitted = result?.status === "success";
+  const locked = hasSubmitted || result?.status === "success";
 
   function handlePointClick(price: number, candleIndex: number) {
-    if (submitted) return;
+    if (locked) return;
     setSelectedPoint({ price, candleIndex });
     setError(null);
   }
@@ -59,7 +59,7 @@ export function ChartExercise({ exerciseId, chartData, hasSubmitted }: Props) {
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="pt-4 pb-4">
           <p className="font-semibold leading-relaxed">{chartData.question}</p>
-          {!submitted && (
+          {!locked && (
             <p className="mt-1 text-sm text-muted-foreground">לחץ על הגרף לסימון הנקודה</p>
           )}
         </CardContent>
@@ -69,22 +69,22 @@ export function ChartExercise({ exerciseId, chartData, hasSubmitted }: Props) {
         <CardContent className="px-0">
           <CandleChart
             candles={chartData.candles}
-            mode={submitted ? "view-only" : "student-click"}
+            mode={locked ? "view-only" : "student-click"}
             supportLevels={chartData.support_levels}
             resistanceLevels={chartData.resistance_levels}
-            selectedPoint={submitted ? null : selectedPoint}
-            onPointClick={submitted ? undefined : handlePointClick}
+            selectedPoint={locked ? null : selectedPoint}
+            onPointClick={locked ? undefined : handlePointClick}
           />
         </CardContent>
       </Card>
 
-      {selectedPoint && !submitted && (
+      {selectedPoint && !locked && (
         <p className="text-xs text-muted-foreground">
           נבחר: נר {selectedPoint.candleIndex + 1} | מחיר ₪{selectedPoint.price.toFixed(1)}
         </p>
       )}
 
-      {submitted && result && (
+      {result?.status === "success" && result && (
         <Card className={result.correct ? "border-green-500/40 bg-green-500/5" : "border-orange-500/40 bg-orange-500/5"}>
           <CardContent className="pt-4 pb-4 space-y-2">
             <div className="flex items-start gap-2">
@@ -104,13 +104,13 @@ export function ChartExercise({ exerciseId, chartData, hasSubmitted }: Props) {
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      {!submitted && (
+      {!locked && (
         <Button onClick={handleSubmit} disabled={!selectedPoint || isPending} className="w-full min-h-11 sm:w-auto">
           {isPending ? "שולח..." : "שלח תשובה"}
         </Button>
       )}
 
-      {submitted && (
+      {locked && (
         <Button variant="outline" onClick={handleRetry} className="w-full min-h-11 sm:w-auto">
           נסה שוב
         </Button>

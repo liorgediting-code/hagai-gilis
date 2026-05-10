@@ -18,11 +18,11 @@ interface Props {
 
 export function MultipleChoiceExercise({ exerciseId, chartData, hasSubmitted }: Props) {
   const [selected, setSelected] = useState<0 | 1 | 2 | 3 | null>(null);
-  const [result, setResult] = useState<ExerciseSubmitResult | null>(hasSubmitted ? { status: "success" } : null);
+  const [result, setResult] = useState<ExerciseSubmitResult | null>(null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const submitted = result?.status === "success";
+  const locked = hasSubmitted || result?.status === "success";
 
   function handleSubmit() {
     if (selected === null) {
@@ -73,13 +73,13 @@ export function MultipleChoiceExercise({ exerciseId, chartData, hasSubmitted }: 
           return (
             <button
               key={i}
-              onClick={() => { if (!submitted) { setSelected(idx); setError(null); } }}
-              disabled={submitted}
+              onClick={() => { if (!locked) { setSelected(idx); setError(null); } }}
+              disabled={locked}
               className={`w-full flex items-center gap-3 rounded-xl border px-4 py-3 text-start transition-colors ${
                 isSelected
                   ? "border-primary bg-primary/10"
                   : "border-border hover:border-primary/50 hover:bg-muted/50"
-              } ${submitted ? "cursor-default" : "cursor-pointer"}`}
+              } ${locked ? "cursor-default" : "cursor-pointer"}`}
             >
               <span className={`size-7 shrink-0 rounded-full flex items-center justify-center text-sm font-bold ${
                 isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
@@ -92,7 +92,7 @@ export function MultipleChoiceExercise({ exerciseId, chartData, hasSubmitted }: 
         })}
       </div>
 
-      {submitted && result && (
+      {result?.status === "success" && result && (
         <Card className={result.correct ? "border-green-500/40 bg-green-500/5" : "border-orange-500/40 bg-orange-500/5"}>
           <CardContent className="pt-4 pb-4 space-y-2">
             <div className="flex items-start gap-2">
@@ -112,13 +112,13 @@ export function MultipleChoiceExercise({ exerciseId, chartData, hasSubmitted }: 
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      {!submitted && (
+      {!locked && (
         <Button onClick={handleSubmit} disabled={selected === null || isPending} className="w-full min-h-11 sm:w-auto">
           {isPending ? "שולח..." : "שלח תשובה"}
         </Button>
       )}
 
-      {submitted && (
+      {locked && (
         <Button variant="outline" onClick={handleRetry} className="w-full min-h-11 sm:w-auto">
           נסה שוב
         </Button>
