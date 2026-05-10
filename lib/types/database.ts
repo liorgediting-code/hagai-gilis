@@ -1,3 +1,4 @@
+npm warn Unknown project config "enable-pre-post-scripts". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
 export type Json =
   | string
   | number
@@ -20,6 +21,8 @@ export type Database = {
           attempt_number: number
           exercise_id: string
           id: string
+          passed: boolean | null
+          score_pct: number | null
           submitted_at: string
           user_id: string
         }
@@ -28,6 +31,8 @@ export type Database = {
           attempt_number?: number
           exercise_id: string
           id?: string
+          passed?: boolean | null
+          score_pct?: number | null
           submitted_at?: string
           user_id: string
         }
@@ -36,6 +41,8 @@ export type Database = {
           attempt_number?: number
           exercise_id?: string
           id?: string
+          passed?: boolean | null
+          score_pct?: number | null
           submitted_at?: string
           user_id?: string
         }
@@ -56,6 +63,7 @@ export type Database = {
           description: string | null
           id: string
           lesson_id: string
+          level: number
           order_index: number
           title: string
           updated_at: string
@@ -66,6 +74,7 @@ export type Database = {
           description?: string | null
           id?: string
           lesson_id: string
+          level?: number
           order_index?: number
           title: string
           updated_at?: string
@@ -76,6 +85,7 @@ export type Database = {
           description?: string | null
           id?: string
           lesson_id?: string
+          level?: number
           order_index?: number
           title?: string
           updated_at?: string
@@ -148,6 +158,35 @@ export type Database = {
           },
         ]
       }
+      lesson_unlocks: {
+        Row: {
+          lesson_id: string
+          unlocked_at: string
+          unlocked_by: string | null
+          user_id: string
+        }
+        Insert: {
+          lesson_id: string
+          unlocked_at?: string
+          unlocked_by?: string | null
+          user_id: string
+        }
+        Update: {
+          lesson_id?: string
+          unlocked_at?: string
+          unlocked_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_unlocks_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           created_at: string
@@ -155,6 +194,7 @@ export type Database = {
           id: string
           module_id: string
           order_index: number
+          pass_threshold: number
           title: string
           updated_at: string
           video_url: string | null
@@ -165,6 +205,7 @@ export type Database = {
           id?: string
           module_id: string
           order_index?: number
+          pass_threshold?: number
           title: string
           updated_at?: string
           video_url?: string | null
@@ -175,6 +216,7 @@ export type Database = {
           id?: string
           module_id?: string
           order_index?: number
+          pass_threshold?: number
           title?: string
           updated_at?: string
           video_url?: string | null
@@ -188,6 +230,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      market_posts: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          image_url: string | null
+          title: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          title: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          title?: string
+        }
+        Relationships: []
       }
       modules: {
         Row: {
@@ -266,7 +335,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       role_enum: "student" | "admin"
@@ -401,3 +470,5 @@ export const Constants = {
     },
   },
 } as const
+A new version of Supabase CLI is available: v2.98.2 (currently installed v2.92.1)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
