@@ -144,3 +144,7 @@ export async function deleteExerciseAction(
   revalidatePath("/exercises");
   return { status: "success" };
 }
+
+export async function deleteExerciseFormAction(formData: FormData): Promise<void> {
+  await deleteExerciseAction({ status: "idle" }, formData);
+}
