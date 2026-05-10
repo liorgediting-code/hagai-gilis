@@ -14,13 +14,16 @@ import type { LessonRow, LessonProgressRow, LessonSummaryRow, ExerciseRow } from
 
 interface LessonPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ retry?: string }>;
 }
 
 type SiblingLesson = Pick<LessonRow, "id" | "title" | "order_index">;
 
-export default async function LessonPage({ params }: LessonPageProps) {
+export default async function LessonPage({ params, searchParams }: LessonPageProps) {
   await requirePageAccess("lessons");
   const { id } = await params;
+  const { retry } = await searchParams;
+  const showRetryBanner = retry === "true";
   const user = await requireUser();
   const supabase = await createClient();
   const db = asUntyped(supabase);
@@ -86,6 +89,22 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
       <h1 className="font-heading text-2xl font-bold text-foreground">{lesson.title}</h1>
 
+      {/* Retry banner */}
+      {showRetryBanner && (
+        <div className="flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-medium text-amber-800">
+            חזור לצפות בשיעור ואז לחץ על המשך לתרגול
+          </p>
+          <Link
+            href={`/lessons/${id}/exercise`}
+            className={buttonVariants({ className: "min-h-11 shrink-0 gap-2 bg-amber-500 text-white hover:bg-amber-600" })}
+          >
+            <DumbbellIcon className="size-4" aria-hidden="true" />
+            המשך לתרגול רמה 2
+          </Link>
+        </div>
+      )}
+
       {/* Video */}
       <VideoPlayer videoUrl={lesson.video_url} />
 
@@ -114,11 +133,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
         {firstExercise && (
           <Link
-            href={`/exercises/${firstExercise.id}`}
-            className={buttonVariants({ variant: "outline", className: "min-h-11 gap-2" })}
+            href={`/lessons/${id}/exercise`}
+            className={buttonVariants({ className: "min-h-11 gap-2" })}
           >
             <DumbbellIcon className="size-4" aria-hidden="true" />
-            תרגול שיעור
+            התחל תרגול
           </Link>
         )}
       </div>
