@@ -30,6 +30,7 @@ interface WizardInitialData {
   lessonId?: string;
   orderIndex?: number;
   timeframe?: string;
+  level?: number;
 }
 
 interface Props {
@@ -59,6 +60,7 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
   const [lessonId, setLessonId] = useState(initial.lessonId ?? "");
   const [orderIndex, setOrderIndex] = useState(initial.orderIndex ?? 0);
   const [timeframe, setTimeframe] = useState(initial.timeframe ?? "");
+  const [level, setLevel] = useState<1 | 2 | 3>((initial.level as 1 | 2 | 3) ?? 1);
 
   function buildContentJson(): string {
     if (exType === "chart_click") {
@@ -114,7 +116,9 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
       {step === 0 && (
         <WizardStep1Type
           selected={exType}
+          level={level}
           onSelect={setExType}
+          onLevelChange={setLevel}
           onNext={() => setStep(1)}
         />
       )}
