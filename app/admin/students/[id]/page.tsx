@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-import { asUntyped } from "@/lib/supabase/untyped";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PermissionToggle } from "./_components/permission-toggle";
@@ -40,7 +39,6 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
   await requireAdmin();
   const { id } = await params;
   const supabase = await createClient();
-  const db = asUntyped(supabase);
 
   const [
     { data: profile },
@@ -57,34 +55,34 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
       .eq("id", id)
       .eq("role", "student")
       .single() as unknown as Promise<{ data: Profile | null }>,
-    db
+    supabase
       .from("user_permissions")
       .select("*")
       .eq("user_id", id) as unknown as Promise<{ data: UserPermissionRow[] | null }>,
-    db
+    supabase
       .from("lesson_progress")
       .select("*")
       .eq("user_id", id) as unknown as Promise<{ data: LessonProgressRow[] | null }>,
-    db
+    supabase
       .from("lessons")
       .select("id, title, order_index")
       .order("order_index") as unknown as Promise<{
       data: Pick<LessonRow, "id" | "title" | "order_index">[] | null;
     }>,
-    db
+    supabase
       .from("lesson_unlocks")
       .select("lesson_id")
       .eq("user_id", id) as unknown as Promise<{
       data: Pick<LessonUnlockRow, "lesson_id">[] | null;
     }>,
-    db
+    supabase
       .from("exercise_submissions")
       .select("exercise_id, passed")
       .eq("user_id", id)
       .eq("passed", true) as unknown as Promise<{
       data: Pick<ExerciseSubmissionRow, "exercise_id" | "passed">[] | null;
     }>,
-    db
+    supabase
       .from("exercises")
       .select("id, lesson_id")
       .eq("level", 3) as unknown as Promise<{
@@ -121,7 +119,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
     <div className="space-y-6">
       <div className="space-y-1">
         <Link href="/admin/students" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-          → רשימת תלמידים
+          ← רשימת תלמידים
         </Link>
         <h1 className="font-heading text-2xl font-bold text-foreground">
           {profile.full_name ?? "תלמיד"}
