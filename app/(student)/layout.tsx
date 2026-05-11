@@ -65,20 +65,20 @@ export default async function StudentLayout({ children }: { children: ReactNode 
                 שיעורים
               </Link>
             )}
-            {!denied.has("exercises") && (
-              <Link
-                href="/exercises"
-                className="flex min-h-11 items-center rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                תרגולי שיעורים
-              </Link>
-            )}
             {!denied.has("summaries") && (
               <Link
                 href="/summaries"
                 className="flex min-h-11 items-center rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 סיכומים
+              </Link>
+            )}
+            {!denied.has("market") && (
+              <Link
+                href="/market"
+                className="flex min-h-11 items-center rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                מניות
               </Link>
             )}
           </nav>

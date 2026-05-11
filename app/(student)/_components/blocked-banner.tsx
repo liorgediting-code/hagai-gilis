@@ -4,8 +4,8 @@ import { useSearchParams } from "next/navigation";
 
 const pageLabels: Record<string, string> = {
   lessons: "שיעורים",
-  exercises: "תרגולים",
   summaries: "סיכומים",
+  market: "מניות",
 };
 
 export function BlockedBanner() {

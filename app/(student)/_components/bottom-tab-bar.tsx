@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeIcon, BookOpenIcon, DumbbellIcon, FileTextIcon } from "lucide-react";
+import { HomeIcon, BookOpenIcon, FileTextIcon, TrendingUpIcon } from "lucide-react";
 import type { ComponentType } from "react";
 
 interface Props {
@@ -18,10 +18,10 @@ type TabItem = {
 };
 
 const tabs: TabItem[] = [
-  { href: "/",          label: "בית",      icon: HomeIcon,      page: null,        exact: true },
-  { href: "/lessons",   label: "שיעורים",  icon: BookOpenIcon,  page: "lessons"              },
-  { href: "/exercises", label: "תרגולים",  icon: DumbbellIcon,  page: "exercises"            },
-  { href: "/summaries", label: "סיכומים",  icon: FileTextIcon,  page: "summaries"            },
+  { href: "/",         label: "בית",     icon: HomeIcon,        page: null,       exact: true },
+  { href: "/lessons",  label: "שיעורים", icon: BookOpenIcon,    page: "lessons"              },
+  { href: "/summaries", label: "סיכומים", icon: FileTextIcon,   page: "summaries"            },
+  { href: "/market",   label: "מניות",   icon: TrendingUpIcon,  page: "market"               },
 ];
 
 export function BottomTabBar({ denied }: Props) {
