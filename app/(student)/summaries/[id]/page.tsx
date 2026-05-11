@@ -19,19 +19,12 @@ export default async function SummaryPage({ params }: SummaryPageProps) {
   const supabase = await createClient();
   const db = asUntyped(supabase);
 
-  const { data: summary } = (await db
-    .from("lesson_summaries")
-    .select("*")
-    .eq("lesson_id", id)
-    .maybeSingle()) as { data: LessonSummaryRow | null; error: unknown };
+  const [{ data: summary }, { data: lesson }] = await Promise.all([
+    db.from("lesson_summaries").select("*").eq("lesson_id", id).maybeSingle(),
+    db.from("lessons").select("*").eq("id", id).single(),
+  ]) as [{ data: LessonSummaryRow | null; error: unknown }, { data: LessonRow | null; error: unknown }];
 
   if (!summary) notFound();
-
-  const { data: lesson } = (await db
-    .from("lessons")
-    .select("*")
-    .eq("id", id)
-    .single()) as { data: LessonRow | null; error: unknown };
 
   return (
     <div className="space-y-6">

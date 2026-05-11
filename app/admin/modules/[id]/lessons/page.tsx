@@ -20,19 +20,12 @@ export default async function ModuleLessonsPage({ params }: ModuleLessonsPagePro
   const supabase = await createClient();
   const db = asUntyped(supabase);
 
-  const { data: mod } = (await db
-    .from("modules")
-    .select("*")
-    .eq("id", id)
-    .single()) as { data: ModuleRow | null; error: unknown };
+  const [{ data: mod }, { data: lessons }] = await Promise.all([
+    db.from("modules").select("*").eq("id", id).single(),
+    db.from("lessons").select("*").eq("module_id", id).order("order_index"),
+  ]) as [{ data: ModuleRow | null; error: unknown }, { data: LessonRow[] | null; error: unknown }];
 
   if (!mod) notFound();
-
-  const { data: lessons } = (await db
-    .from("lessons")
-    .select("*")
-    .eq("module_id", id)
-    .order("order_index")) as { data: LessonRow[] | null; error: unknown };
 
   const list = lessons ?? [];
 
