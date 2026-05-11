@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,9 +58,17 @@ export default function ResetPasswordPage() {
         </div>
 
         {state.status === "error" && (
-          <p role="alert" className="text-sm text-destructive">
-            {state.error}
-          </p>
+          <div role="alert" className="space-y-1">
+            <p className="text-sm text-destructive">{state.error}</p>
+            {state.error.includes("פג תוקף") && (
+              <Link
+                href="/forgot-password"
+                className="text-sm text-primary underline underline-offset-2"
+              >
+                שלח קישור איפוס חדש
+              </Link>
+            )}
+          </div>
         )}
 
         <Button

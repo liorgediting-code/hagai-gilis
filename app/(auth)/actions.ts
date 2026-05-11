@@ -153,11 +153,22 @@ export async function resetPasswordAction(
   }
 
   const supabase = await createClient();
+
+  // Verify the recovery session exists before attempting the update.
+  const { data: { user }, error: sessionError } = await supabase.auth.getUser();
+  if (sessionError || !user) {
+    return {
+      status: "error",
+      error: "פג תוקף קישור האיפוס — אנא בקש קישור חדש",
+    };
+  }
+
   const { error } = await supabase.auth.updateUser({
     password: parsed.data.password,
   });
 
   if (error) {
+    console.error("[resetPasswordAction] updateUser failed:", error.message);
     return { status: "error", error: "לא ניתן לעדכן את הסיסמה — נסה שנית" };
   }
 
