@@ -129,7 +129,6 @@ export default async function MarketPage() {
                   </CardTitle>
                   <span
                     className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground"
-                    dir="ltr"
                   >
                     <CalendarIcon className="size-3.5" aria-hidden="true" />
                     {formatDate(post.created_at)}
