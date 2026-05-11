@@ -169,7 +169,10 @@ export async function resetPasswordAction(
 
   if (error) {
     console.error("[resetPasswordAction] updateUser failed:", error.message);
-    return { status: "error", error: "לא ניתן לעדכן את הסיסמה — נסה שנית" };
+    const message = error.message.includes("different from the old password")
+      ? "הסיסמה החדשה חייבת להיות שונה מהסיסמה הנוכחית"
+      : "לא ניתן לעדכן את הסיסמה — נסה שנית";
+    return { status: "error", error: message };
   }
 
   revalidatePath("/", "layout");
