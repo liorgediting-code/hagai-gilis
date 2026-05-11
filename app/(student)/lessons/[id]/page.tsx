@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRightIcon, ChevronLeftIcon, FileTextIcon, DumbbellIcon } from "lucide-react";
+import { ChevronRightIcon, FileTextIcon, DumbbellIcon } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
@@ -71,10 +71,6 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
 
   const currentIndex = siblings?.findIndex((s) => s.id === id) ?? -1;
   const prevLesson = currentIndex > 0 ? siblings![currentIndex - 1] : null;
-  const nextLesson =
-    siblings && currentIndex >= 0 && currentIndex < siblings.length - 1
-      ? siblings[currentIndex + 1]
-      : null;
 
   return (
     <div className="space-y-6">
@@ -143,7 +139,7 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
                   <p className="font-semibold text-sm">תרגול לנושא זה</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {isCompleted
-                      ? "שלושה שלבי קושי — עבור את כולם כדי לפתוח את הנושא הבא"
+                      ? "השלם את התרגול כדי לפתוח את השיעור הבא"
                       : "סמן את הצפייה בשיעור כהושלמה כדי לפתוח את התרגול"}
                   </p>
                 </div>
@@ -166,34 +162,16 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
         </Card>
       )}
 
-      {/* Navigation row */}
-      {(prevLesson || nextLesson) && (
-        <div className="flex items-center justify-between gap-3">
-          {/* Start (right in RTL) — previous lesson */}
-          {prevLesson ? (
-            <Link
-              href={`/lessons/${prevLesson.id}`}
-              className={buttonVariants({ variant: "outline", className: "min-h-11 gap-2" })}
-            >
-              <ChevronRightIcon className="size-4" aria-hidden="true" />
-              שיעור קודם
-            </Link>
-          ) : (
-            <div />
-          )}
-
-          {/* End (left in RTL) — next lesson */}
-          {nextLesson ? (
-            <Link
-              href={`/lessons/${nextLesson.id}`}
-              className={buttonVariants({ variant: "outline", className: "min-h-11 gap-2" })}
-            >
-              שיעור הבא
-              <ChevronLeftIcon className="size-4" aria-hidden="true" />
-            </Link>
-          ) : (
-            <div />
-          )}
+      {/* Navigation row — previous lesson only; next is gated behind exercise */}
+      {prevLesson && (
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/lessons/${prevLesson.id}`}
+            className={buttonVariants({ variant: "outline", className: "min-h-11 gap-2" })}
+          >
+            <ChevronRightIcon className="size-4" aria-hidden="true" />
+            שיעור קודם
+          </Link>
         </div>
       )}
     </div>
