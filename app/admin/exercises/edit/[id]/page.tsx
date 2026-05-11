@@ -43,6 +43,7 @@ export default async function EditExercisePage({ params }: Props) {
     explanation: content.explanation,
     lessonId: exercise.lesson_id,
     orderIndex: exercise.order_index,
+    level: exercise.level,
   } : content?.type === "multiple_choice" ? {
     editId: id,
     type: "multiple_choice" as const,
@@ -50,13 +51,11 @@ export default async function EditExercisePage({ params }: Props) {
     candles: content.candles,
     supportLevels: content.support_levels,
     resistanceLevels: content.resistance_levels,
-    options: content.questions[0]?.options,
-    correctOptionIndex: content.questions[0]?.correct_option_index,
+    questions: content.questions,
     title: exercise.title,
-    question: content.questions[0]?.question,
-    explanation: content.questions[0]?.explanation,
     lessonId: exercise.lesson_id,
     orderIndex: exercise.order_index,
+    level: exercise.level,
   } : { editId: id };
 
   return (
