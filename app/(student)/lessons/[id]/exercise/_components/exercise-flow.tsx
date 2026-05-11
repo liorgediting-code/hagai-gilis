@@ -5,6 +5,7 @@ import Link from "next/link";
 import { submitExerciseAttempt } from "../actions";
 import { ChartClickExercise } from "./chart-click-exercise";
 import { QuizExercise } from "./quiz-exercise";
+import { ResultCard } from "./result-card";
 import type {
   SanitizedExerciseContent,
   ChartClickAnswer,
@@ -36,27 +37,17 @@ export function ExerciseFlow({ exercise, exerciseId, lessonId, level, passThresh
     }
   }
 
-  if (result.status === "success") {
+  if (result.status === "success" && result.passed !== undefined) {
     return (
-      <div className="rounded-xl border p-6 text-center space-y-4 mt-6">
-        {result.passed
-          ? <p className="text-green-600 font-bold text-lg">כל הכבוד! עברת!</p>
-          : <p className="text-red-600 font-bold text-lg">לא עברת.</p>
-        }
-        <p className="text-xs text-muted-foreground">רמה {level}</p>
-        {result.score_pct !== undefined && (
-          <p className="text-sm">ציון: {result.score_pct}% (נדרש {passThreshold}%)</p>
-        )}
-        {result.explanation && (
-          <p className="text-sm text-muted-foreground">{result.explanation}</p>
-        )}
-        <Link
-          href={`/lessons/${lessonId}/exercise`}
-          className="inline-flex items-center justify-center rounded-md bg-primary px-4 text-primary-foreground text-sm font-medium min-h-11"
-        >
-          המשך
-        </Link>
-      </div>
+      <ResultCard
+        passed={result.passed}
+        scorePct={result.score_pct ?? (result.passed ? 100 : 0)}
+        passThreshold={passThreshold}
+        level={level}
+        lessonId={lessonId}
+        explanation={result.explanation}
+        questionResults={result.question_results}
+      />
     );
   }
 
