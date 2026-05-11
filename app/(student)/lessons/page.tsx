@@ -79,23 +79,16 @@ export default async function LessonsPage() {
     lessonsByModule.set(lesson.module_id, group);
   }
 
-  // Determine which module is globally first (lowest order_index)
-  const firstModuleId = allModules[0]?.id;
-
   function isLessonUnlocked(
     lesson: LessonRow,
     prevLesson: LessonRow | undefined,
   ): boolean {
-    // First lesson of the first module is always open
-    if (lesson.module_id === firstModuleId && lesson.order_index === 0) {
-      return true;
-    }
-    // First lesson of any other module: unlocked if order_index === 0 (spec simplification)
-    if (lesson.order_index === 0) return true;
+    // First lesson of any module (no previous sibling) is always open
+    if (!prevLesson) return true;
     // Manual admin unlock
     if (manualUnlockSet.has(lesson.id)) return true;
-    // Previous lesson (by sorted position) has a passed L3 submission
-    if (prevLesson && passedL3LessonSet.has(prevLesson.id)) return true;
+    // Previous lesson has a passed L3 submission
+    if (passedL3LessonSet.has(prevLesson.id)) return true;
     return false;
   }
 
