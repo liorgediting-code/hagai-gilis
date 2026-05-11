@@ -6,11 +6,6 @@ import Link from "next/link";
 import { createExerciseAction, updateExerciseAction } from "@/app/admin/exercises/actions";
 import type { ActionState } from "@/app/(auth)/actions";
 
-interface LessonOption {
-  id: string;
-  title: string;
-}
-
 interface Props {
   title: string;
   question: string;
@@ -19,14 +14,12 @@ interface Props {
   orderIndex: number;
   level: 1 | 2 | 3;
   exType: "chart_click" | "multiple_choice";
-  lessons: LessonOption[];
   contentJson: string;
   editId?: string;
   onUpdate: (data: {
     title: string;
     question: string;
     explanation: string;
-    lessonId: string;
     orderIndex: number;
   }) => void;
   onBack: () => void;
@@ -36,7 +29,7 @@ const initialState: ActionState = { status: "idle" };
 
 export function WizardStep4Question({
   title, question, explanation, lessonId, orderIndex,
-  level, exType, lessons, contentJson, editId, onUpdate, onBack,
+  level, exType, contentJson, editId, onUpdate, onBack,
 }: Props) {
   const action = editId ? updateExerciseAction : createExerciseAction;
   const [state, formAction] = useActionState(action, initialState);
@@ -63,9 +56,10 @@ export function WizardStep4Question({
       {editId && <input type="hidden" name="id" value={editId} />}
       <input type="hidden" name="level" value={level} />
       <input type="hidden" name="content_json" value={contentJson} />
+      <input type="hidden" name="lesson_id" value={lessonId} />
 
       <div>
-        <h2 className="font-heading text-lg font-bold">שלב 4 — שאלה והסבר</h2>
+        <h2 className="font-heading text-lg font-bold">שלב 5 — שאלה והסבר</h2>
         <p className="mt-1 text-sm text-muted-foreground">הגדר את הטקסט שהסטודנט יראה ואת המטא-נתונים</p>
       </div>
 
@@ -74,7 +68,7 @@ export function WizardStep4Question({
           <label className="text-sm font-medium" htmlFor="title">כותרת תרגיל</label>
           <input id="title" name="title" type="text" required
             defaultValue={title}
-            onChange={(e) => onUpdate({ title: e.target.value, question, explanation, lessonId, orderIndex })}
+            onChange={(e) => onUpdate({ title: e.target.value, question, explanation, orderIndex })}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring" />
         </div>
 
@@ -84,7 +78,7 @@ export function WizardStep4Question({
               <label className="text-sm font-medium" htmlFor="question">שאלה</label>
               <textarea id="question" required rows={3}
                 defaultValue={question}
-                onChange={(e) => onUpdate({ title, question: e.target.value, explanation, lessonId, orderIndex })}
+                onChange={(e) => onUpdate({ title, question: e.target.value, explanation, orderIndex })}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 name="__question_display" />
             </div>
@@ -93,34 +87,20 @@ export function WizardStep4Question({
               <label className="text-sm font-medium" htmlFor="explanation">הסבר (לאחר מענה)</label>
               <textarea id="explanation" required rows={3}
                 defaultValue={explanation}
-                onChange={(e) => onUpdate({ title, question, explanation: e.target.value, lessonId, orderIndex })}
+                onChange={(e) => onUpdate({ title, question, explanation: e.target.value, orderIndex })}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 name="__explanation_display" />
             </div>
           </>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium" htmlFor="lesson_id">שיעור</label>
-            <select id="lesson_id" name="lesson_id" required defaultValue={lessonId}
-              onChange={(e) => onUpdate({ title, question, explanation, lessonId: e.target.value, orderIndex })}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring">
-              <option value="">בחר שיעור</option>
-              {lessons.map((l) => (
-                <option key={l.id} value={l.id}>{l.title}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-medium" htmlFor="order_index">סדר</label>
-            <input id="order_index" name="order_index" type="number" min={0} required
-              defaultValue={orderIndex}
-              onChange={(e) => onUpdate({ title, question, explanation, lessonId, orderIndex: parseInt(e.target.value) || 0 })}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-              dir="ltr" />
-          </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium" htmlFor="order_index">סדר</label>
+          <input id="order_index" name="order_index" type="number" min={0} required
+            defaultValue={orderIndex}
+            onChange={(e) => onUpdate({ title, question, explanation, orderIndex: parseInt(e.target.value) || 0 })}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            dir="ltr" />
         </div>
       </div>
 

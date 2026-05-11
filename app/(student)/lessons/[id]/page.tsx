@@ -130,17 +130,41 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
             סיכום שיעור
           </Link>
         )}
-
-        {firstExercise && (
-          <Link
-            href={`/lessons/${id}/exercise`}
-            className={buttonVariants({ className: "min-h-11 gap-2" })}
-          >
-            <DumbbellIcon className="size-4" aria-hidden="true" />
-            התחל תרגול
-          </Link>
-        )}
       </div>
+
+      {/* Exercises section — unlocks after video marked complete */}
+      {firstExercise && (
+        <Card className={isCompleted ? "border-primary/30 bg-primary/5" : "opacity-60"}>
+          <CardContent className="pt-5 pb-5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <DumbbellIcon className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+                <div>
+                  <p className="font-semibold text-sm">תרגול לנושא זה</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {isCompleted
+                      ? "שלושה שלבי קושי — עבור את כולם כדי לפתוח את הנושא הבא"
+                      : "סמן את הצפייה בשיעור כהושלמה כדי לפתוח את התרגול"}
+                  </p>
+                </div>
+              </div>
+              {isCompleted ? (
+                <Link
+                  href={`/lessons/${id}/exercise`}
+                  className={buttonVariants({ className: "min-h-11 shrink-0 gap-2" })}
+                >
+                  <DumbbellIcon className="size-4" aria-hidden="true" />
+                  התחל תרגול
+                </Link>
+              ) : (
+                <div className="shrink-0 rounded-lg border border-dashed border-muted-foreground/40 px-4 py-2 text-xs text-muted-foreground">
+                  נעול
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Navigation row */}
       {(prevLesson || nextLesson) && (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { WizardStep0Lesson } from "./wizard-step-0-lesson";
 import { WizardStep1Type } from "./wizard-step-1-type";
 import { WizardStep2Data } from "./wizard-step-2-data";
 import { WizardStep3Zone } from "./wizard-step-3-zone";
@@ -37,10 +38,10 @@ interface Props {
   initial?: WizardInitialData;
 }
 
-const STEPS = ["סוג", "נתונים", "אזור / תשובות", "שאלה"];
+const STEPS = ["נושא", "סוג", "נתונים", "אזור / תשובות", "שאלה"];
 
 export function ExerciseWizard({ lessons, initial = {} }: Props) {
-  const [step, setStep] = useState(initial.editId ? 1 : 0);
+  const [step, setStep] = useState(0);
   const [exType, setExType] = useState<"chart_click" | "multiple_choice" | null>(initial.type ?? null);
   const [csvRaw, setCsvRaw] = useState(initial.csvRaw ?? "");
   const [candles, setCandles] = useState<CandleData[]>(initial.candles ?? []);
@@ -104,16 +105,26 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
       </div>
 
       {step === 0 && (
-        <WizardStep1Type
-          selected={exType}
-          level={level}
-          onSelect={setExType}
-          onLevelChange={setLevel}
+        <WizardStep0Lesson
+          lessons={lessons}
+          selectedId={lessonId}
+          onSelect={setLessonId}
           onNext={() => setStep(1)}
         />
       )}
 
       {step === 1 && (
+        <WizardStep1Type
+          selected={exType}
+          level={level}
+          onSelect={setExType}
+          onLevelChange={setLevel}
+          onNext={() => setStep(2)}
+          onBack={() => setStep(0)}
+        />
+      )}
+
+      {step === 2 && (
         <WizardStep2Data
           csvRaw={csvRaw}
           candles={candles}
@@ -127,12 +138,12 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
             setResistanceLevels(data.resistanceLevels);
             setTimeframe(data.timeframe);
           }}
-          onNext={() => setStep(2)}
-          onBack={() => setStep(0)}
+          onNext={() => setStep(3)}
+          onBack={() => setStep(1)}
         />
       )}
 
-      {step === 2 && exType === "chart_click" && (
+      {step === 3 && exType === "chart_click" && (
         <WizardStep3Zone
           candles={candles}
           supportLevels={supportLevels}
@@ -140,12 +151,12 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
           zone={zone}
           onZoneDraw={setZone}
           timeframe={timeframe}
-          onNext={() => setStep(3)}
-          onBack={() => setStep(1)}
+          onNext={() => setStep(4)}
+          onBack={() => setStep(2)}
         />
       )}
 
-      {step === 2 && exType === "multiple_choice" && (
+      {step === 3 && exType === "multiple_choice" && (
         <WizardStep3Quiz
           candles={candles}
           supportLevels={supportLevels}
@@ -153,12 +164,12 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
           timeframe={timeframe}
           questions={questions}
           onUpdate={setQuestions}
-          onNext={() => setStep(3)}
-          onBack={() => setStep(1)}
+          onNext={() => setStep(4)}
+          onBack={() => setStep(2)}
         />
       )}
 
-      {step === 3 && (
+      {step === 4 && (
         <WizardStep4Question
           title={title}
           question={question}
@@ -167,17 +178,15 @@ export function ExerciseWizard({ lessons, initial = {} }: Props) {
           orderIndex={orderIndex}
           level={level}
           exType={exType!}
-          lessons={lessons}
           contentJson={buildContentJson()}
           editId={initial.editId}
           onUpdate={(data) => {
             setTitle(data.title);
             setQuestion(data.question);
             setExplanation(data.explanation);
-            setLessonId(data.lessonId);
             setOrderIndex(data.orderIndex);
           }}
-          onBack={() => setStep(2)}
+          onBack={() => setStep(3)}
         />
       )}
     </div>

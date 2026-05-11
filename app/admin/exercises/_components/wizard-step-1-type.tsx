@@ -9,13 +9,14 @@ interface Props {
   onSelect: (type: "chart_click" | "multiple_choice") => void;
   onLevelChange: (level: 1 | 2 | 3) => void;
   onNext: () => void;
+  onBack: () => void;
 }
 
-export function WizardStep1Type({ selected, level, onSelect, onLevelChange, onNext }: Props) {
+export function WizardStep1Type({ selected, level, onSelect, onLevelChange, onNext, onBack }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-heading text-lg font-bold">שלב 1 — סוג תרגיל</h2>
+        <h2 className="font-heading text-lg font-bold">שלב 2 — סוג תרגיל</h2>
         <p className="mt-1 text-sm text-muted-foreground">בחר את סוג התרגיל ורמת הקושי</p>
       </div>
 
@@ -67,9 +68,10 @@ export function WizardStep1Type({ selected, level, onSelect, onLevelChange, onNe
         </div>
       </div>
 
-      <div className="flex justify-start">
+      <div className="flex justify-between">
+        <Button type="button" variant="outline" onClick={onBack} className="min-h-11">חזור</Button>
         <Button onClick={onNext} disabled={!selected} className="min-h-11">
-          המשך לשלב 2
+          המשך לשלב 3
         </Button>
       </div>
     </div>
