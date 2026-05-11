@@ -294,12 +294,8 @@ export default async function ExerciseFlowPage({ params }: Props) {
 
       {/* Exercise component */}
       <ExerciseFlow
-        exercise={{
-          id: selectedExercise.id,
-          title: selectedExercise.title,
-          level: selectedExercise.level,
-          content: sanitized,
-        }}
+        exercise={sanitized}
+        exerciseId={selectedExercise.id}
         lessonId={lessonId}
         level={targetLevel}
         passThreshold={lesson.pass_threshold}
