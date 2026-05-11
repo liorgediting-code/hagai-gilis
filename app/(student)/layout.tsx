@@ -36,7 +36,8 @@ export default async function StudentLayout({ children }: { children: ReactNode 
 
     if (profile?.role === "admin") redirect("/admin");
     name = profile?.full_name ?? null;
-    (deniedRows ?? []).forEach((r) => denied.add(r.page));
+    // "market" uses a grant model (row = allowed), not a deny model — exclude it here.
+    (deniedRows ?? []).filter((r) => r.page !== "market").forEach((r) => denied.add(r.page));
   }
 
   const deniedList = Array.from(denied);
@@ -73,14 +74,12 @@ export default async function StudentLayout({ children }: { children: ReactNode 
                 סיכומים
               </Link>
             )}
-            {!denied.has("market") && (
-              <Link
-                href="/market"
-                className="flex min-h-11 items-center rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                מניות
-              </Link>
-            )}
+            <Link
+              href="/market"
+              className="flex min-h-11 items-center rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              מניות
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">

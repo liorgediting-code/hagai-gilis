@@ -21,7 +21,8 @@ const tabs: TabItem[] = [
   { href: "/",         label: "בית",     icon: HomeIcon,        page: null,       exact: true },
   { href: "/lessons",  label: "שיעורים", icon: BookOpenIcon,    page: "lessons"              },
   { href: "/summaries", label: "סיכומים", icon: FileTextIcon,   page: "summaries"            },
-  { href: "/market",   label: "מניות",   icon: TrendingUpIcon,  page: "market"               },
+  // market uses grant model — always visible; access gate is inline on the page itself
+  { href: "/market",   label: "מניות",   icon: TrendingUpIcon,  page: null                   },
 ];
 
 export function BottomTabBar({ denied }: Props) {
