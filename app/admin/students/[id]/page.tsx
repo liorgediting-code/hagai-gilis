@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PermissionToggle } from "./_components/permission-toggle";
 import { LessonUnlockControls } from "./_components/lesson-unlock-controls";
+import { MarketPermissionToggle, type MarketState } from "./_components/market-permission-toggle";
 import type { Tables } from "@/lib/types/database";
 import type {
   UserPermissionRow,
@@ -94,6 +95,18 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
 
   const denied = new Set((deniedRows ?? []).map((r) => r.page));
 
+  const hasMarketGrant = (deniedRows ?? []).some((r) => r.page === "market");
+  const hasMarketDeny  = (deniedRows ?? []).some((r) => r.page === "market_deny");
+  const allLessonsCompleted =
+    (lessons ?? []).length > 0 &&
+    (progress ?? []).filter((p) => p.completed_at !== null).length >= (lessons ?? []).length;
+
+  const marketState: MarketState =
+    hasMarketDeny   ? "blocked"     :
+    hasMarketGrant  ? "early_grant" :
+    allLessonsCompleted ? "auto_open" :
+    "locked";
+
   const progressMap = new Map((progress ?? []).map((p) => [p.lesson_id, p]));
 
   const completedCount = (progress ?? []).filter((p) => p.completed_at !== null).length;
@@ -169,6 +182,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
               isDenied={denied.has(page)}
             />
           ))}
+          <MarketPermissionToggle userId={id} marketState={marketState} />
         </CardContent>
       </Card>
 
