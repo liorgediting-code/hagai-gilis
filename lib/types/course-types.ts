@@ -35,11 +35,11 @@ export type LessonSummaryRow = {
 
 export type UserPermissionRow = {
   user_id: string;
-  page: "lessons" | "exercises" | "summaries" | "market";
+  page: "lessons" | "exercises" | "summaries" | "market" | "market_deny";
   created_at: string;
 };
 
-export type PageKey = "lessons" | "exercises" | "summaries" | "market";
+export type PageKey = "lessons" | "exercises" | "summaries" | "market" | "market_deny";
 
 export type ExerciseRow = {
   id: string;
