@@ -60,3 +60,48 @@ export async function togglePagePermissionAction(
   revalidatePath("/admin/students/[id]", "page");
   return { status: "success" };
 }
+
+const marketActionSchema = z.object({
+  user_id: z.string().uuid("מזהה משתמש לא תקין"),
+  action: z.enum(["grant", "revoke_grant", "deny", "revoke_deny"], {
+    errorMap: () => ({ message: "פעולה לא תקינה" }),
+  }),
+});
+
+export async function toggleMarketPermissionAction(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  const parsed = marketActionSchema.safeParse({
+    user_id: formData.get("user_id"),
+    action: formData.get("action"),
+  });
+
+  if (!parsed.success) {
+    return { status: "error", error: parsed.error.errors[0]?.message ?? "קלט לא תקין" };
+  }
+
+  const { user_id, action } = parsed.data;
+  const supabase = asUntyped(await createClient());
+
+  if (action === "grant") {
+    await supabase.from("user_permissions").delete().eq("user_id", user_id).eq("page", "market_deny");
+    const { error } = await supabase.from("user_permissions").insert({ user_id, page: "market" });
+    if (error && error.code !== "23505") return { status: "error", error: "שגיאה בפתיחת גישה" };
+  } else if (action === "revoke_grant") {
+    const { error } = await supabase.from("user_permissions").delete().eq("user_id", user_id).eq("page", "market");
+    if (error) return { status: "error", error: "שגיאה בביטול הגישה" };
+  } else if (action === "deny") {
+    await supabase.from("user_permissions").delete().eq("user_id", user_id).eq("page", "market");
+    const { error } = await supabase.from("user_permissions").insert({ user_id, page: "market_deny" });
+    if (error && error.code !== "23505") return { status: "error", error: "שגיאה בחסימת גישה" };
+  } else {
+    const { error } = await supabase.from("user_permissions").delete().eq("user_id", user_id).eq("page", "market_deny");
+    if (error) return { status: "error", error: "שגיאה בהסרת החסימה" };
+  }
+
+  revalidatePath("/admin/students/[id]", "page");
+  return { status: "success" };
+}
