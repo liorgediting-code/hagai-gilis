@@ -30,6 +30,7 @@ export default async function MarketPage() {
 
   const [
     { data: grantRow },
+    { data: denyRow },
     { data: allLessons },
     { data: progressRows },
     { data: posts },
@@ -39,6 +40,12 @@ export default async function MarketPage() {
       .select("page")
       .eq("user_id", user.id)
       .eq("page", "market")
+      .maybeSingle() as unknown as Promise<{ data: UserPermissionRow | null }>,
+    db
+      .from("user_permissions")
+      .select("page")
+      .eq("user_id", user.id)
+      .eq("page", "market_deny")
       .maybeSingle() as unknown as Promise<{ data: UserPermissionRow | null }>,
     db
       .from("lessons")
@@ -58,6 +65,7 @@ export default async function MarketPage() {
   ]);
 
   const hasExplicitGrant = grantRow !== null;
+  const hasExplicitDeny  = denyRow !== null;
 
   const lessonCount = (allLessons ?? []).length;
   const completedCount = (progressRows ?? []).filter(
@@ -65,7 +73,7 @@ export default async function MarketPage() {
   ).length;
   const allLessonsCompleted = lessonCount > 0 && completedCount >= lessonCount;
 
-  const isGranted = hasExplicitGrant || allLessonsCompleted;
+  const isGranted = !hasExplicitDeny && (hasExplicitGrant || allLessonsCompleted);
 
   if (!isGranted) {
     return (
