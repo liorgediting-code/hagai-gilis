@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeIcon, BookOpenIcon, FileTextIcon, TrendingUpIcon } from "lucide-react";
+import { HomeIcon, BookOpenIcon, FileTextIcon, TrendingUpIcon, BugIcon } from "lucide-react";
 import type { ComponentType } from "react";
 
 interface Props {
@@ -23,6 +23,7 @@ const tabs: TabItem[] = [
   { href: "/summaries", label: "סיכומים", icon: FileTextIcon,   page: "summaries"            },
   // market uses grant model — always visible; access gate is inline on the page itself
   { href: "/market",   label: "מניות",   icon: TrendingUpIcon,  page: null                   },
+  { href: "/report",   label: "דיווח",   icon: BugIcon,         page: null                   },
 ];
 
 export function BottomTabBar({ denied }: Props) {

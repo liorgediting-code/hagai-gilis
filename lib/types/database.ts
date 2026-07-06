@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      bug_reports: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          page_url: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          page_url?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          page_url?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       exercise_submissions: {
         Row: {
           answer_data: Json | null
