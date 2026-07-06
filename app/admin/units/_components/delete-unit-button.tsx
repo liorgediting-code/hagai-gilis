@@ -4,30 +4,30 @@ import { useActionState } from "react";
 import { Trash2Icon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { deleteLessonAction } from "@/app/admin/lessons/actions";
+import { deleteUnitAction } from "../actions";
 import type { ActionState } from "@/app/(auth)/actions";
 
-interface DeleteLessonButtonProps {
-  lessonId: string;
-  lessonTitle: string;
+interface DeleteUnitButtonProps {
   unitId: string;
+  unitTitle: string;
+  moduleId: string;
 }
 
 const initialState: ActionState = { status: "idle" };
 
-export function DeleteLessonButton({ lessonId, lessonTitle, unitId }: DeleteLessonButtonProps) {
-  const [, formAction, isPending] = useActionState(deleteLessonAction, initialState);
+export function DeleteUnitButton({ unitId, unitTitle, moduleId }: DeleteUnitButtonProps) {
+  const [, formAction, isPending] = useActionState(deleteUnitAction, initialState);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    if (!confirm(`למחוק את השיעור "${lessonTitle}"?`)) {
+    if (!confirm(`למחוק את היחידה "${unitTitle}"? כל השיעורים בתוכה יימחקו.`)) {
       e.preventDefault();
     }
   }
 
   return (
     <form action={formAction} onSubmit={handleSubmit}>
-      <input type="hidden" name="id" value={lessonId} />
-      <input type="hidden" name="unit_id" value={unitId} />
+      <input type="hidden" name="id" value={unitId} />
+      <input type="hidden" name="module_id" value={moduleId} />
       <Button
         type="submit"
         variant="ghost"

@@ -8,40 +8,40 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DeleteLessonButton } from "@/app/admin/lessons/_components/delete-lesson-button";
-import type { ModuleRow, LessonRow } from "@/lib/types/course-types";
+import type { UnitRow, LessonRow } from "@/lib/types/course-types";
 
-interface ModuleLessonsPageProps {
+interface UnitLessonsPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function ModuleLessonsPage({ params }: ModuleLessonsPageProps) {
+export default async function UnitLessonsPage({ params }: UnitLessonsPageProps) {
   await requireAdmin();
   const { id } = await params;
   const supabase = await createClient();
   const db = asUntyped(supabase);
 
-  const [{ data: mod }, { data: lessons }] = await Promise.all([
-    db.from("modules").select("*").eq("id", id).single(),
-    db.from("lessons").select("*").eq("module_id", id).order("order_index"),
-  ]) as [{ data: ModuleRow | null; error: unknown }, { data: LessonRow[] | null; error: unknown }];
+  const [{ data: unit }, { data: lessons }] = await Promise.all([
+    db.from("units").select("*").eq("id", id).single(),
+    db.from("lessons").select("*").eq("unit_id", id).order("order_index"),
+  ]) as [{ data: UnitRow | null; error: unknown }, { data: LessonRow[] | null; error: unknown }];
 
-  if (!mod) notFound();
+  if (!unit) notFound();
 
   const list = lessons ?? [];
 
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <Link href="/admin/modules" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-          ← ניהול מודולים
+        <Link href={`/admin/modules/${unit.module_id}/units`} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          ← חזרה ליחידות
         </Link>
-        <h1 className="font-heading text-2xl font-bold text-foreground">{mod.title}</h1>
-        <p className="text-sm text-muted-foreground">שיעורים במודול זה</p>
+        <h1 className="font-heading text-2xl font-bold text-foreground">{unit.title}</h1>
+        <p className="text-sm text-muted-foreground">שיעורים ביחידה זו</p>
       </div>
 
       <div className="flex justify-end">
         <Link
-          href={`/admin/lessons/new?module_id=${mod.id}`}
+          href={`/admin/lessons/new?unit_id=${unit.id}`}
           className={buttonVariants({ className: "min-h-11" })}
         >
           הוסף שיעור
@@ -92,7 +92,7 @@ export default async function ModuleLessonsPage({ params }: ModuleLessonsPagePro
                       ערוך סיכום
                     </Link>
                     <Link
-                      href={`/admin/lessons/${lesson.id}/edit?module_id=${mod.id}`}
+                      href={`/admin/lessons/${lesson.id}/edit?unit_id=${unit.id}`}
                       className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1.5 min-h-9" })}
                     >
                       <PencilIcon className="size-3.5" aria-hidden="true" />
@@ -101,7 +101,7 @@ export default async function ModuleLessonsPage({ params }: ModuleLessonsPagePro
                     <DeleteLessonButton
                       lessonId={lesson.id}
                       lessonTitle={lesson.title}
-                      moduleId={mod.id}
+                      unitId={unit.id}
                     />
                   </div>
                 </li>

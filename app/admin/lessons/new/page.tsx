@@ -6,14 +6,14 @@ import { createLessonAction } from "@/app/admin/lessons/actions";
 import { LessonForm } from "@/app/admin/lessons/_components/lesson-form";
 
 interface NewLessonPageProps {
-  searchParams: Promise<{ module_id?: string }>;
+  searchParams: Promise<{ unit_id?: string }>;
 }
 
 export default async function NewLessonPage({ searchParams }: NewLessonPageProps) {
   await requireAdmin();
-  const { module_id } = await searchParams;
+  const { unit_id } = await searchParams;
 
-  if (!module_id) redirect("/admin/modules");
+  if (!unit_id) redirect("/admin/modules");
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -23,7 +23,7 @@ export default async function NewLessonPage({ searchParams }: NewLessonPageProps
           <CardTitle className="text-base font-semibold">פרטי השיעור</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
-          <LessonForm action={createLessonAction} moduleId={module_id} />
+          <LessonForm action={createLessonAction} unitId={unit_id} />
         </CardContent>
       </Card>
     </div>

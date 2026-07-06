@@ -63,11 +63,11 @@ export default async function AdminModulesPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Link
-                      href={`/admin/modules/${mod.id}/lessons`}
+                      href={`/admin/modules/${mod.id}/units`}
                       className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1.5 min-h-9" })}
                     >
                       <BookOpenIcon className="size-3.5" aria-hidden="true" />
-                      נהל שיעורים
+                      נהל יחידות
                     </Link>
                     <Link
                       href={`/admin/modules/${mod.id}/edit`}

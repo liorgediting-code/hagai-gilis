@@ -13,18 +13,18 @@ interface LessonFormProps {
   action: (prevState: ActionState, formData: FormData) => Promise<ActionState>;
   defaultValues?: Partial<LessonRow>;
   lessonId?: string;
-  moduleId: string;
+  unitId: string;
 }
 
 const initialState: ActionState = { status: "idle" };
 
-export function LessonForm({ action, defaultValues, lessonId, moduleId }: LessonFormProps) {
+export function LessonForm({ action, defaultValues, lessonId, unitId }: LessonFormProps) {
   const [state, formAction, isPending] = useActionState(action, initialState);
 
   return (
     <form action={formAction} className="space-y-5">
       {lessonId && <input type="hidden" name="id" value={lessonId} />}
-      <input type="hidden" name="module_id" value={moduleId} />
+      <input type="hidden" name="unit_id" value={unitId} />
 
       <div className="space-y-2">
         <Label htmlFor="title">כותרת השיעור</Label>
@@ -107,7 +107,7 @@ export function LessonForm({ action, defaultValues, lessonId, moduleId }: Lesson
           {isPending ? "שומר..." : lessonId ? "שמור שינויים" : "צור שיעור"}
         </Button>
         <Link
-          href={`/admin/modules/${moduleId}/lessons`}
+          href={`/admin/units/${unitId}/lessons`}
           className="text-sm text-muted-foreground hover:text-foreground"
         >
           ביטול

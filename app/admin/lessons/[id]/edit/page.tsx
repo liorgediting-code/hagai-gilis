@@ -10,13 +10,13 @@ import type { LessonRow } from "@/lib/types/course-types";
 
 interface EditLessonPageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ module_id?: string }>;
+  searchParams: Promise<{ unit_id?: string }>;
 }
 
 export default async function EditLessonPage({ params, searchParams }: EditLessonPageProps) {
   await requireAdmin();
   const { id } = await params;
-  const { module_id } = await searchParams;
+  const { unit_id } = await searchParams;
 
   const supabase = await createClient();
   const { data: lesson } = (await asUntyped(supabase)
@@ -27,7 +27,7 @@ export default async function EditLessonPage({ params, searchParams }: EditLesso
 
   if (!lesson) notFound();
 
-  const resolvedModuleId = module_id ?? lesson.module_id;
+  const resolvedUnitId = unit_id ?? lesson.unit_id;
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -41,7 +41,7 @@ export default async function EditLessonPage({ params, searchParams }: EditLesso
             action={updateLessonAction}
             defaultValues={lesson}
             lessonId={lesson.id}
-            moduleId={resolvedModuleId}
+            unitId={resolvedUnitId}
           />
         </CardContent>
       </Card>
