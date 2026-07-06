@@ -6,18 +6,19 @@ import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
 import { requireUser } from "@/lib/auth/require-user";
 import { requirePageAccess } from "@/lib/auth/check-page-access";
+import { flattenModuleLessons } from "@/lib/course/ordering";
 import { VideoPlayer } from "@/components/lesson/video-player";
 import { MarkCompleteButton } from "@/app/(student)/_components/mark-complete-button";
+import { FileUploadExercise as FileUploadExerciseClient } from "./exercise/_components/file-upload-exercise";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { LessonRow, LessonProgressRow, LessonSummaryRow, ExerciseRow } from "@/lib/types/course-types";
+import type { LessonRow, LessonProgressRow, LessonSummaryRow } from "@/lib/types/course-types";
+import type { FileUploadExercise } from "@/lib/types/exercise-types";
 
 interface LessonPageProps {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ retry?: string }>;
 }
-
-type SiblingLesson = Pick<LessonRow, "id" | "title" | "order_index">;
 
 export default async function LessonPage({ params, searchParams }: LessonPageProps) {
   await requirePageAccess("lessons");
@@ -36,11 +37,16 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
 
   if (!lesson) notFound();
 
+  const { data: unitRow } = (await db
+    .from("units")
+    .select("id, module_id, order_index")
+    .eq("id", lesson.unit_id)
+    .single()) as { data: { id: string; module_id: string; order_index: number } | null };
+
   const [
     { data: progress },
     { data: summary },
-    { data: siblings },
-    { data: firstExercise },
+    { data: lessonExercises },
   ] = await Promise.all([
     (db
       .from("lesson_progress")
@@ -54,23 +60,50 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
       .eq("lesson_id", id)
       .maybeSingle() as unknown) as Promise<{ data: Pick<LessonSummaryRow, "lesson_id"> | null; error: unknown }>,
     (db
-      .from("lessons")
-      .select("id, title, order_index")
-      .eq("module_id", lesson.module_id)
-      .order("order_index", { ascending: true }) as unknown) as Promise<{ data: SiblingLesson[] | null; error: unknown }>,
-    (db
       .from("exercises")
-      .select("id")
+      .select("id, order_index, content_json")
       .eq("lesson_id", id)
-      .order("order_index", { ascending: true })
-      .limit(1)
-      .maybeSingle() as unknown) as Promise<{ data: Pick<ExerciseRow, "id"> | null; error: unknown }>,
+      .order("order_index", { ascending: true }) as unknown) as Promise<{
+      data: { id: string; order_index: number; content_json: { type?: string } | null }[] | null;
+    }>,
   ]);
+
+  const { data: moduleUnits } = (await db
+    .from("units")
+    .select("id, order_index")
+    .eq("module_id", unitRow?.module_id ?? "")
+    .order("order_index")) as { data: { id: string; order_index: number }[] | null };
+
+  const unitIds = (moduleUnits ?? []).map((u) => u.id);
+  const { data: moduleLessons } = (await db
+    .from("lessons")
+    .select("*")
+    .in("unit_id", unitIds.length > 0 ? unitIds : ["00000000-0000-0000-0000-000000000000"])) as {
+    data: LessonRow[] | null;
+  };
+
+  const orderedSiblings = flattenModuleLessons(moduleUnits ?? [], moduleLessons ?? []);
 
   const isCompleted = progress?.completed_at != null;
 
-  const currentIndex = siblings?.findIndex((s) => s.id === id) ?? -1;
-  const prevLesson = currentIndex > 0 ? siblings![currentIndex - 1] : null;
+  const currentIndex = orderedSiblings.findIndex((s) => s.id === id);
+  const prevLesson = currentIndex > 0 ? orderedSiblings[currentIndex - 1] : null;
+
+  const fileExercises = (lessonExercises ?? []).filter((e) => e.content_json?.type === "file_upload");
+  const hasChartExercise = (lessonExercises ?? []).some(
+    (e) => e.content_json?.type === "chart_click" || e.content_json?.type === "multiple_choice",
+  );
+
+  const fileExerciseIds = fileExercises.map((e) => e.id);
+  const { data: fileSubs } = (await db
+    .from("exercise_submissions")
+    .select("exercise_id, passed")
+    .eq("user_id", user.id)
+    .in("exercise_id", fileExerciseIds.length > 0 ? fileExerciseIds : ["00000000-0000-0000-0000-000000000000"])) as {
+    data: { exercise_id: string; passed: boolean | null }[] | null;
+  };
+
+  const fileSubMap = new Map((fileSubs ?? []).map((s) => [s.exercise_id, s]));
 
   return (
     <div className="space-y-6">
@@ -129,7 +162,7 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
       </div>
 
       {/* Exercises section — unlocks after video marked complete */}
-      {firstExercise && (
+      {hasChartExercise && (
         <Card className={isCompleted ? "border-primary/30 bg-primary/5" : "opacity-60"}>
           <CardContent className="pt-5 pb-5">
             <div className="flex items-center justify-between gap-4">
@@ -158,6 +191,32 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
                 </div>
               )}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* File-upload submission tasks — available once video marked complete */}
+      {fileExercises.length > 0 && isCompleted && fileExercises.map((ex) => {
+        const content = ex.content_json as FileUploadExercise;
+        const existing = fileSubMap.get(ex.id);
+        return (
+          <Card key={ex.id}>
+            <CardContent className="pt-5 pb-5 space-y-3">
+              <p className="font-semibold text-sm">משימת הגשה</p>
+              <FileUploadExerciseClient
+                exerciseId={ex.id}
+                lessonId={id}
+                content={content}
+                existing={existing ? { count: 1, passed: existing.passed } : null}
+              />
+            </CardContent>
+          </Card>
+        );
+      })}
+      {fileExercises.length > 0 && !isCompleted && (
+        <Card className="opacity-60">
+          <CardContent className="pt-5 pb-5">
+            <p className="text-sm text-muted-foreground">סמן את הצפייה בשיעור כהושלמה כדי לפתוח את משימת ההגשה</p>
           </CardContent>
         </Card>
       )}

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
 import { requireUser } from "@/lib/auth/require-user";
 import { requirePageAccess } from "@/lib/auth/check-page-access";
+import { flattenModuleLessons } from "@/lib/course/ordering";
 import { buttonVariants } from "@/components/ui/button";
 import { ExerciseFlow } from "./_components/exercise-flow";
 import type { ExerciseRow, LessonRow } from "@/lib/types/course-types";
@@ -108,10 +109,10 @@ export default async function ExerciseFlowPage({ params }: Props) {
   // Fetch lesson
   const { data: lesson } = (await db
     .from("lessons")
-    .select("id, title, order_index, module_id, pass_threshold")
+    .select("id, title, order_index, unit_id, pass_threshold")
     .eq("id", lessonId)
     .single()) as {
-    data: Pick<LessonRow, "id" | "title" | "order_index" | "module_id" | "pass_threshold"> | null;
+    data: Pick<LessonRow, "id" | "title" | "order_index" | "unit_id" | "pass_threshold"> | null;
     error: unknown;
   };
 
@@ -129,10 +130,15 @@ export default async function ExerciseFlowPage({ params }: Props) {
 
   const exercises = exercisesRaw ?? [];
 
-  if (exercises.length === 0) notFound();
+  const chartExercises = exercises.filter((e) => {
+    const t = (e.content_json as { type?: string } | null)?.type;
+    return t === "chart_click" || t === "multiple_choice";
+  });
+
+  if (chartExercises.length === 0) notFound();
 
   // Fetch submissions for this lesson's exercises
-  const exerciseIds = exercises.map((e) => e.id);
+  const exerciseIds = chartExercises.map((e) => e.id);
   const { data: submissionsRaw } = (await db
     .from("exercise_submissions")
     .select("exercise_id, passed")
@@ -142,19 +148,34 @@ export default async function ExerciseFlowPage({ params }: Props) {
   const submissions = submissionsRaw ?? [];
 
   // Determine current level
-  const levelState = determineLevel(exercises, submissions);
+  const levelState = determineLevel(chartExercises, submissions);
 
   // Completed state
   if (levelState === "completed") {
-    // Try to find the next lesson in same module by order_index
-    const { data: nextLesson } = (await db
+    // Try to find the next lesson in same module, reparented through units
+    const { data: unitRow } = (await db
+      .from("units")
+      .select("id, module_id, order_index")
+      .eq("id", lesson.unit_id)
+      .single()) as { data: { id: string; module_id: string; order_index: number } | null };
+
+    const { data: mUnits } = (await db
+      .from("units")
+      .select("id, order_index")
+      .eq("module_id", unitRow?.module_id ?? "")
+      .order("order_index")) as { data: { id: string; order_index: number }[] | null };
+
+    const mUnitIds = (mUnits ?? []).map((u) => u.id);
+    const { data: mLessons } = (await db
       .from("lessons")
-      .select("id, title")
-      .eq("module_id", lesson.module_id)
-      .gt("order_index", lesson.order_index)
-      .order("order_index", { ascending: true })
-      .limit(1)
-      .maybeSingle()) as { data: Pick<LessonRow, "id" | "title"> | null; error: unknown };
+      .select("*")
+      .in("unit_id", mUnitIds.length > 0 ? mUnitIds : ["00000000-0000-0000-0000-000000000000"])) as {
+      data: LessonRow[] | null;
+    };
+
+    const ordered = flattenModuleLessons(mUnits ?? [], mLessons ?? []);
+    const idx = ordered.findIndex((l) => l.id === lessonId);
+    const nextLesson = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null;
 
     return (
       <div className="space-y-6">
@@ -201,7 +222,7 @@ export default async function ExerciseFlowPage({ params }: Props) {
 
   // Pick exercise for current level
   const targetLevel: 1 | 2 | 3 = levelState;
-  const selectedExercise = pickExercise(exercises, targetLevel, submissions);
+  const selectedExercise = pickExercise(chartExercises, targetLevel, submissions);
 
   // If no exercises exist at target level, show a graceful empty state
   if (!selectedExercise) {
