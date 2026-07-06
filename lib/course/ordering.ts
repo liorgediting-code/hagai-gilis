@@ -18,3 +18,9 @@ export function flattenModuleLessons(
     return a.order_index - b.order_index;
   });
 }
+
+/** Next lesson after `currentId` within an already-flattened linear sequence. */
+export function nextLessonInSequence(ordered: LessonRow[], currentId: string): LessonRow | null {
+  const idx = ordered.findIndex((l) => l.id === currentId);
+  return idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null;
+}

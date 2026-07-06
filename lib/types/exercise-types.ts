@@ -44,9 +44,17 @@ export type MultipleChoiceExercise = {
 export type FileUploadExercise = {
   type: "file_upload";
   instructions: string;
-  required_files: number;
+  /** Maximum number of files the student may upload (1..10). */
+  max_files: number;
+  /** @deprecated legacy fixed count — read via getMaxFiles(); migrated to max_files. */
+  required_files?: number;
   completion_mode: "manual_review" | "auto_complete";
 };
+
+/** Backward-compatible read of the file cap, tolerating rows written before max_files. */
+export function getMaxFiles(content: Pick<FileUploadExercise, "max_files" | "required_files">): number {
+  return content.max_files ?? content.required_files ?? 1;
+}
 
 export type UploadedFile = {
   path: string;
@@ -160,7 +168,7 @@ export const multipleChoiceSchema = z.object({
 export const fileUploadSchema = z.object({
   type: z.literal("file_upload"),
   instructions: z.string().min(1, "הוראות נדרשות").max(4000, "הוראות ארוכות מדי"),
-  required_files: z.coerce.number().int().min(1, "נדרש לפחות קובץ אחד").max(10, "עד 10 קבצים"),
+  max_files: z.coerce.number().int().min(1, "נדרש לפחות קובץ אחד").max(10, "עד 10 קבצים"),
   completion_mode: z.enum(["manual_review", "auto_complete"]),
 });
 

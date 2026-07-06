@@ -16,6 +16,7 @@ interface Props {
   passThreshold: number;
   level: 1 | 2 | 3;
   lessonId: string;
+  nextLessonId: string | null;
   explanation?: string;
   questionResults?: QuestionResult[];
 }
@@ -35,7 +36,12 @@ interface ActionConfig {
   href: string;
 }
 
-function getLevelAction(passed: boolean, level: 1 | 2 | 3, lessonId: string): ActionConfig | null {
+function getLevelAction(
+  passed: boolean,
+  level: 1 | 2 | 3,
+  lessonId: string,
+  nextLessonId: string | null,
+): ActionConfig | null {
   if (level === 1) {
     return passed
       ? { label: "המשך לרמה 3", href: `/lessons/${lessonId}/exercise` }
@@ -46,14 +52,17 @@ function getLevelAction(passed: boolean, level: 1 | 2 | 3, lessonId: string): Ac
       ? { label: "המשך לרמה 3", href: `/lessons/${lessonId}/exercise` }
       : null;
   }
-  return passed
-    ? { label: "לכל השיעורים", href: "/lessons" }
-    : { label: "נסה שוב", href: `/lessons/${lessonId}/exercise` };
+  if (passed) {
+    return nextLessonId
+      ? { label: "המשך לשיעור הבא", href: `/lessons/${nextLessonId}` }
+      : { label: "לכל השיעורים", href: "/lessons" };
+  }
+  return { label: "נסה שוב", href: `/lessons/${lessonId}/exercise` };
 }
 
-export function ResultCard({ passed, scorePct, passThreshold, level, lessonId, explanation, questionResults }: Props) {
+export function ResultCard({ passed, scorePct, passThreshold, level, lessonId, nextLessonId, explanation, questionResults }: Props) {
   const message = getLevelMessage(passed, level);
-  const action = getLevelAction(passed, level, lessonId);
+  const action = getLevelAction(passed, level, lessonId, nextLessonId);
   const showWhatsApp = level === 2 && !passed;
 
   return (

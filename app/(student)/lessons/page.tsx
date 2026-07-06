@@ -6,6 +6,7 @@ import { asUntyped } from "@/lib/supabase/untyped";
 import { requireUser } from "@/lib/auth/require-user";
 import { requirePageAccess } from "@/lib/auth/check-page-access";
 import { flattenModuleLessons } from "@/lib/course/ordering";
+import { isLessonComplete, type ExerciseMeta } from "@/lib/course/completion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
   LessonRow,
@@ -14,8 +15,6 @@ import type {
   LessonUnlockRow,
   UnitRow,
 } from "@/lib/types/course-types";
-
-type PassedL3Row = { exercises: { lesson_id: string } };
 
 export default async function LessonsPage() {
   await requirePageAccess("lessons");
@@ -29,7 +28,8 @@ export default async function LessonsPage() {
     { data: lessonsData },
     { data: progressData },
     { data: unlocksData },
-    { data: passedL3Data },
+    { data: exercisesData },
+    { data: passedSubsData },
   ] = await Promise.all([
     db.from("modules").select("*").order("order_index") as unknown as Promise<{
       data: ModuleRow[] | null;
@@ -55,27 +55,33 @@ export default async function LessonsPage() {
       data: Pick<LessonUnlockRow, "lesson_id">[] | null;
     }>,
     db
+      .from("exercises")
+      .select("id, lesson_id, level") as unknown as Promise<{ data: ExerciseMeta[] | null }>,
+    db
       .from("exercise_submissions")
-      .select("exercises!inner(lesson_id)")
+      .select("exercise_id")
       .eq("user_id", user.id)
-      .eq("passed", true)
-      .eq("exercises.level", 3) as unknown as Promise<{
-      data: PassedL3Row[] | null;
-    }>,
+      .eq("passed", true) as unknown as Promise<{ data: { exercise_id: string }[] | null }>,
   ]);
 
   const allModules = modulesData ?? [];
   const allLessons = lessonsData ?? [];
 
+  const allExercises = exercisesData ?? [];
+  const passedExerciseIds = new Set((passedSubsData ?? []).map((s) => s.exercise_id));
+  const completedAtMap = new Map(
+    (progressData ?? []).map((p) => [p.lesson_id, p.completed_at]),
+  );
+
+  // Unified completion: terminal exercise passed, or (no exercise) video marked watched.
   const completedSet = new Set(
-    (progressData ?? [])
-      .filter((p) => p.completed_at !== null)
-      .map((p) => p.lesson_id),
+    allLessons
+      .filter((l) =>
+        isLessonComplete(l.id, allExercises, passedExerciseIds, completedAtMap.get(l.id) ?? null),
+      )
+      .map((l) => l.id),
   );
   const manualUnlockSet = new Set((unlocksData ?? []).map((u) => u.lesson_id));
-  const passedL3LessonSet = new Set(
-    (passedL3Data ?? []).map((s) => s.exercises.lesson_id),
-  );
 
   // Group units by module, and lessons by unit, preserving sorted order
   const allUnits = unitsData ?? [];
@@ -106,10 +112,10 @@ export default async function LessonsPage() {
   ): boolean {
     // First lesson of any module (no previous lesson in the flattened sequence) is always open
     if (!prevLesson) return true;
-    // Manual admin unlock
+    // Manual admin unlock (override)
     if (manualUnlockSet.has(lesson.id)) return true;
-    // Previous lesson has a passed L3 submission
-    if (passedL3LessonSet.has(prevLesson.id)) return true;
+    // Previous lesson is complete by any path (exercise passed / approved / watched)
+    if (completedSet.has(prevLesson.id)) return true;
     return false;
   }
 

@@ -21,7 +21,7 @@ function buildContent(formData: FormData):
   const parsed = fileUploadSchema.safeParse({
     type: "file_upload",
     instructions: formData.get("instructions"),
-    required_files: formData.get("required_files"),
+    max_files: formData.get("max_files"),
     completion_mode: formData.get("completion_mode"),
   });
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? "תוכן לא תקין" };

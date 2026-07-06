@@ -21,9 +21,11 @@ export interface ExerciseFlowProps {
   level: 1 | 2 | 3;
   /** Forwarded to ResultCard in Task 13; shown in score display */
   passThreshold: number;
+  /** Next lesson to continue to after passing the final level; null → all lessons. */
+  nextLessonId: string | null;
 }
 
-export function ExerciseFlow({ exercise, exerciseId, lessonId, level, passThreshold }: ExerciseFlowProps) {
+export function ExerciseFlow({ exercise, exerciseId, lessonId, level, passThreshold, nextLessonId }: ExerciseFlowProps) {
   const [result, setResult] = useState<ExerciseSubmitResult>({ status: "idle" });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -45,6 +47,7 @@ export function ExerciseFlow({ exercise, exerciseId, lessonId, level, passThresh
         passThreshold={passThreshold}
         level={level}
         lessonId={lessonId}
+        nextLessonId={nextLessonId}
         explanation={result.explanation}
         questionResults={result.question_results}
       />

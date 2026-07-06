@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
 import { requireUser } from "@/lib/auth/require-user";
 import { requirePageAccess } from "@/lib/auth/check-page-access";
-import { flattenModuleLessons } from "@/lib/course/ordering";
+import { flattenModuleLessons, nextLessonInSequence } from "@/lib/course/ordering";
+import { isLessonComplete, type ExerciseMeta } from "@/lib/course/completion";
 import { VideoPlayer } from "@/components/lesson/video-player";
 import { MarkCompleteButton } from "@/app/(student)/_components/mark-complete-button";
 import { FileUploadExercise as FileUploadExerciseClient } from "./exercise/_components/file-upload-exercise";
@@ -61,10 +62,10 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
       .maybeSingle() as unknown) as Promise<{ data: Pick<LessonSummaryRow, "lesson_id"> | null; error: unknown }>,
     (db
       .from("exercises")
-      .select("id, order_index, content_json")
+      .select("id, lesson_id, level, order_index, content_json")
       .eq("lesson_id", id)
       .order("order_index", { ascending: true }) as unknown) as Promise<{
-      data: { id: string; order_index: number; content_json: { type?: string } | null }[] | null;
+      data: { id: string; lesson_id: string; level: number; order_index: number; content_json: { type?: string } | null }[] | null;
     }>,
   ]);
 
@@ -84,26 +85,34 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
 
   const orderedSiblings = flattenModuleLessons(moduleUnits ?? [], moduleLessons ?? []);
 
+  // "Watched" — reveals the exercise/upload section within the lesson.
   const isCompleted = progress?.completed_at != null;
 
   const currentIndex = orderedSiblings.findIndex((s) => s.id === id);
   const prevLesson = currentIndex > 0 ? orderedSiblings[currentIndex - 1] : null;
+  const nextLesson = nextLessonInSequence(orderedSiblings, id);
 
-  const fileExercises = (lessonExercises ?? []).filter((e) => e.content_json?.type === "file_upload");
-  const hasChartExercise = (lessonExercises ?? []).some(
+  const exercises = lessonExercises ?? [];
+  const fileExercises = exercises.filter((e) => e.content_json?.type === "file_upload");
+  const hasChartExercise = exercises.some(
     (e) => e.content_json?.type === "chart_click" || e.content_json?.type === "multiple_choice",
   );
 
-  const fileExerciseIds = fileExercises.map((e) => e.id);
-  const { data: fileSubs } = (await db
+  const allExerciseIds = exercises.map((e) => e.id);
+  const { data: subs } = (await db
     .from("exercise_submissions")
     .select("exercise_id, passed")
     .eq("user_id", user.id)
-    .in("exercise_id", fileExerciseIds.length > 0 ? fileExerciseIds : ["00000000-0000-0000-0000-000000000000"])) as {
+    .in("exercise_id", allExerciseIds.length > 0 ? allExerciseIds : ["00000000-0000-0000-0000-000000000000"])) as {
     data: { exercise_id: string; passed: boolean | null }[] | null;
   };
 
-  const fileSubMap = new Map((fileSubs ?? []).map((s) => [s.exercise_id, s]));
+  const fileSubMap = new Map((subs ?? []).map((s) => [s.exercise_id, s]));
+  const passedExerciseIds = new Set((subs ?? []).filter((s) => s.passed === true).map((s) => s.exercise_id));
+
+  // Unified completion — the gate that opens the next lesson.
+  const exercisesMeta: ExerciseMeta[] = exercises.map((e) => ({ id: e.id, lesson_id: e.lesson_id, level: e.level }));
+  const lessonComplete = isLessonComplete(id, exercisesMeta, passedExerciseIds, progress?.completed_at ?? null);
 
   return (
     <div className="space-y-6">
@@ -208,6 +217,7 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
                 lessonId={id}
                 content={content}
                 existing={existing ? { count: 1, passed: existing.passed } : null}
+                nextLessonId={nextLesson?.id ?? null}
               />
             </CardContent>
           </Card>
@@ -221,16 +231,29 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
         </Card>
       )}
 
-      {/* Navigation row — previous lesson only; next is gated behind exercise */}
-      {prevLesson && (
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/lessons/${prevLesson.id}`}
-            className={buttonVariants({ variant: "outline", className: "min-h-11 gap-2" })}
-          >
-            <ChevronRightIcon className="size-4 rtl:rotate-180" aria-hidden="true" />
-            שיעור קודם
-          </Link>
+      {/* Navigation row — previous always; next appears once the lesson is complete */}
+      {(prevLesson || lessonComplete) && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {prevLesson ? (
+            <Link
+              href={`/lessons/${prevLesson.id}`}
+              className={buttonVariants({ variant: "outline", className: "min-h-11 gap-2" })}
+            >
+              <ChevronRightIcon className="size-4 rtl:rotate-180" aria-hidden="true" />
+              שיעור קודם
+            </Link>
+          ) : (
+            <span />
+          )}
+
+          {lessonComplete && (
+            <Link
+              href={nextLesson ? `/lessons/${nextLesson.id}` : "/lessons"}
+              className={buttonVariants({ className: "min-h-11" })}
+            >
+              {nextLesson ? "המשך לשיעור הבא" : "לכל השיעורים"}
+            </Link>
+          )}
         </div>
       )}
     </div>

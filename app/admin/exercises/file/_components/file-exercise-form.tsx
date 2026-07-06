@@ -67,9 +67,10 @@ export function FileExerciseForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="required_files">מספר קבצים נדרש</Label>
-        <Input id="required_files" name="required_files" type="number" dir="ltr" min="1" max="10" required
-          defaultValue={defaultContent?.required_files ?? 1} className="max-w-32" />
+        <Label htmlFor="max_files">מקסימום קבצים</Label>
+        <Input id="max_files" name="max_files" type="number" dir="ltr" min="1" max="10" required
+          defaultValue={defaultContent?.max_files ?? defaultContent?.required_files ?? 1} className="max-w-32" />
+        <p className="text-xs text-muted-foreground">התלמיד יוכל להעלות עד מספר זה של קבצים.</p>
       </div>
 
       <div className="space-y-2">

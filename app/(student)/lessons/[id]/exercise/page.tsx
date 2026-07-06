@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
 import { requireUser } from "@/lib/auth/require-user";
 import { requirePageAccess } from "@/lib/auth/check-page-access";
-import { flattenModuleLessons } from "@/lib/course/ordering";
+import { flattenModuleLessons, nextLessonInSequence } from "@/lib/course/ordering";
 import { buttonVariants } from "@/components/ui/button";
 import { ExerciseFlow } from "./_components/exercise-flow";
 import type { ExerciseRow, LessonRow } from "@/lib/types/course-types";
@@ -147,36 +147,35 @@ export default async function ExerciseFlowPage({ params }: Props) {
 
   const submissions = submissionsRaw ?? [];
 
+  // Next lesson in this module — powers the "continue" buttons after a pass.
+  const { data: unitRow } = (await db
+    .from("units")
+    .select("id, module_id, order_index")
+    .eq("id", lesson.unit_id)
+    .single()) as { data: { id: string; module_id: string; order_index: number } | null };
+
+  const { data: mUnits } = (await db
+    .from("units")
+    .select("id, order_index")
+    .eq("module_id", unitRow?.module_id ?? "")
+    .order("order_index")) as { data: { id: string; order_index: number }[] | null };
+
+  const mUnitIds = (mUnits ?? []).map((u) => u.id);
+  const { data: mLessons } = (await db
+    .from("lessons")
+    .select("*")
+    .in("unit_id", mUnitIds.length > 0 ? mUnitIds : ["00000000-0000-0000-0000-000000000000"])) as {
+    data: LessonRow[] | null;
+  };
+
+  const ordered = flattenModuleLessons(mUnits ?? [], mLessons ?? []);
+  const nextLesson = nextLessonInSequence(ordered, lessonId);
+
   // Determine current level
   const levelState = determineLevel(chartExercises, submissions);
 
   // Completed state
   if (levelState === "completed") {
-    // Try to find the next lesson in same module, reparented through units
-    const { data: unitRow } = (await db
-      .from("units")
-      .select("id, module_id, order_index")
-      .eq("id", lesson.unit_id)
-      .single()) as { data: { id: string; module_id: string; order_index: number } | null };
-
-    const { data: mUnits } = (await db
-      .from("units")
-      .select("id, order_index")
-      .eq("module_id", unitRow?.module_id ?? "")
-      .order("order_index")) as { data: { id: string; order_index: number }[] | null };
-
-    const mUnitIds = (mUnits ?? []).map((u) => u.id);
-    const { data: mLessons } = (await db
-      .from("lessons")
-      .select("*")
-      .in("unit_id", mUnitIds.length > 0 ? mUnitIds : ["00000000-0000-0000-0000-000000000000"])) as {
-      data: LessonRow[] | null;
-    };
-
-    const ordered = flattenModuleLessons(mUnits ?? [], mLessons ?? []);
-    const idx = ordered.findIndex((l) => l.id === lessonId);
-    const nextLesson = idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null;
-
     return (
       <div className="space-y-6">
         <nav aria-label="ניווט נתיב" className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -320,6 +319,7 @@ export default async function ExerciseFlowPage({ params }: Props) {
         lessonId={lessonId}
         level={targetLevel}
         passThreshold={lesson.pass_threshold}
+        nextLessonId={nextLesson?.id ?? null}
       />
     </div>
   );

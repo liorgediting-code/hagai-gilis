@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { submitFileUploadAction } from "../file-actions";
+import { getMaxFiles } from "@/lib/types/exercise-types";
 import type { FileUploadExercise } from "@/lib/types/exercise-types";
 
 interface Props {
@@ -11,9 +13,11 @@ interface Props {
   lessonId: string;
   content: FileUploadExercise;
   existing: { count: number; passed: boolean | null } | null;
+  /** Next lesson to continue to once this task is complete; null → link to all lessons. */
+  nextLessonId: string | null;
 }
 
-export function FileUploadExercise({ exerciseId, lessonId, content, existing }: Props) {
+export function FileUploadExercise({ exerciseId, lessonId, content, existing, nextLessonId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ passed: boolean } | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -27,16 +31,33 @@ export function FileUploadExercise({ exerciseId, lessonId, content, existing }: 
     });
   }
 
+  const maxFiles = getMaxFiles(content);
+  const nextHref = nextLessonId ? `/lessons/${nextLessonId}` : "/lessons";
+  const nextLabel = nextLessonId ? "המשך לשיעור הבא" : "לכל השיעורים";
+
   const alreadyLabel =
     existing?.passed === true ? "ההגשה אושרה ✓" :
     existing?.passed === false ? "ההגשה נדחתה — ניתן להעלות שוב" :
     existing ? "ההגשה נשלחה — ממתינה לבדיקת המנהל" : null;
 
+  const isPassed = done?.passed || existing?.passed === true;
+
+  if (isPassed) {
+    return (
+      <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 text-center space-y-4">
+        <p className="text-sm font-semibold text-foreground">התרגיל הושלם!</p>
+        <Link href={nextHref} className={buttonVariants({ className: "min-h-11" })}>
+          {nextLabel}
+        </Link>
+      </div>
+    );
+  }
+
   if (done) {
     return (
       <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 text-center">
         <p className="text-sm font-semibold text-foreground">
-          {done.passed ? "הקובץ הועלה והתרגיל הושלם!" : "הקובץ נשלח וממתין לבדיקת המנהל"}
+          הקובץ נשלח וממתין לבדיקת המנהל
         </p>
       </div>
     );
@@ -55,7 +76,7 @@ export function FileUploadExercise({ exerciseId, lessonId, content, existing }: 
         <input type="hidden" name="lesson_id" value={lessonId} />
         <div className="space-y-2">
           <label htmlFor="files" className="text-sm font-medium">
-            העלה {content.required_files} קבצים (תמונות או PDF)
+            העלה עד {maxFiles} קבצים (תמונות או PDF)
           </label>
           <input
             id="files"
@@ -66,7 +87,7 @@ export function FileUploadExercise({ exerciseId, lessonId, content, existing }: 
             accept="image/*,application/pdf"
             className="block w-full text-sm text-muted-foreground file:me-3 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground"
           />
-          <p className="text-xs text-muted-foreground">נדרשים לפחות {content.required_files} קבצים · עד 10MB לקובץ</p>
+          <p className="text-xs text-muted-foreground">ניתן להעלות עד {maxFiles} קבצים · עד 10MB לקובץ</p>
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}

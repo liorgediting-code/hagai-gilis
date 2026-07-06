@@ -7,6 +7,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
 import type { ExerciseRow } from "@/lib/types/course-types";
+import { getMaxFiles } from "@/lib/types/exercise-types";
 import type { FileUploadExercise, UploadedFile } from "@/lib/types/exercise-types";
 
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"]);
@@ -39,9 +40,13 @@ export async function submitFileUploadAction(formData: FormData): Promise<FileSu
   const content = exercise.content_json as FileUploadExercise | null;
   if (!content || content.type !== "file_upload") return { status: "error", error: "סוג תרגיל שגוי" };
 
+  const maxFiles = getMaxFiles(content);
   const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
-  if (files.length < content.required_files) {
-    return { status: "error", error: `נדרש להעלות לפחות ${content.required_files} קבצים` };
+  if (files.length < 1) {
+    return { status: "error", error: "נדרש להעלות לפחות קובץ אחד" };
+  }
+  if (files.length > maxFiles) {
+    return { status: "error", error: `ניתן להעלות עד ${maxFiles} קבצים` };
   }
   for (const f of files) {
     if (!ALLOWED.has(f.type)) return { status: "error", error: "סוג קובץ לא נתמך — רק תמונות או PDF" };

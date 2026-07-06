@@ -32,5 +32,6 @@ export async function reviewFileSubmissionAction(_prev: ActionState, formData: F
 
   if (parsed.data.exercise_id) revalidatePath(`/admin/exercises/${parsed.data.exercise_id}/submissions`);
   revalidatePath("/admin/students");
+  revalidatePath("/lessons");
   return { status: "success" };
 }
