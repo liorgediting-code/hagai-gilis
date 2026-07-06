@@ -80,12 +80,6 @@ export default async function StudentLayout({ children }: { children: ReactNode 
             >
               מניות
             </Link>
-            <Link
-              href="/report"
-              className="flex min-h-11 items-center rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              דיווח על תקלה
-            </Link>
           </nav>
 
           <div className="flex items-center gap-2">

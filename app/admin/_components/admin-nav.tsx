@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MenuIcon, XIcon, LayoutDashboardIcon, UsersIcon, FolderIcon, FileTextIcon, DumbbellIcon, TrendingUpIcon, BugIcon } from "lucide-react";
+import { MenuIcon, XIcon, LayoutDashboardIcon, UsersIcon, FolderIcon, FileTextIcon, DumbbellIcon, TrendingUpIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/app/(auth)/actions";
@@ -19,7 +19,6 @@ const navLinks = [
   { href: "/admin/summaries", label: "סיכומים", icon: FileTextIcon, exact: false },
   { href: "/admin/exercises", label: "תרגולים", icon: DumbbellIcon, exact: false },
   { href: "/admin/market", label: "מניות", icon: TrendingUpIcon, exact: false },
-  { href: "/admin/reports", label: "דיווחי תקלות", icon: BugIcon, exact: false },
 ];
 
 function NavContent({
