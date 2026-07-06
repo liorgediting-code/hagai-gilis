@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PermissionToggle } from "./_components/permission-toggle";
 import { LessonUnlockControls } from "./_components/lesson-unlock-controls";
 import { MarketPermissionToggle, type MarketState } from "./_components/market-permission-toggle";
+import { DeleteStudentButton } from "./_components/delete-student-button";
 import { FileSubmissionsCard } from "./_components/file-submissions-card";
 import type { Tables } from "@/lib/types/database";
 import type {
@@ -270,6 +271,25 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
 
       {/* File submissions */}
       <FileSubmissionsCard submissions={fileSubs ?? []} />
+
+      {/* Danger zone */}
+      <Card className="border-destructive/40">
+        <CardHeader className="border-b border-border/50 pb-4">
+          <CardTitle className="text-base font-semibold text-destructive">
+            אזור מסוכן
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-4 space-y-3">
+          <p className="text-sm text-muted-foreground">
+            מחיקת התלמיד תסיר לצמיתות את חשבונו ואת כל הנתונים שלו. לא ניתן לשחזר.
+          </p>
+          <DeleteStudentButton
+            userId={profile.id}
+            fullName={profile.full_name}
+            email={profile.email}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

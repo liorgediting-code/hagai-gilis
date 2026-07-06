@@ -104,6 +104,7 @@ export async function deleteStudentAction(
 
   const { error } = await admin.auth.admin.deleteUser(targetId);
   if (error) {
+    console.error(`deleteStudentAction failed: admin=${adminUser.id} target=${targetId}`, error);
     return { status: "error", error: "שגיאה במחיקת התלמיד — נסה שנית" };
   }
 
