@@ -41,6 +41,24 @@ export type MultipleChoiceExercise = {
   questions: MultipleChoiceQuestion[];
 };
 
+export type FileUploadExercise = {
+  type: "file_upload";
+  instructions: string;
+  required_files: number;
+  completion_mode: "manual_review" | "auto_complete";
+};
+
+export type UploadedFile = {
+  path: string;
+  name: string;
+  mime: string;
+  size: number;
+};
+
+export type FileUploadAnswer = {
+  files: UploadedFile[];
+};
+
 export type SanitizedChartClickExercise = Omit<ChartClickExercise, "acceptance_zone">;
 
 export type SanitizedMultipleChoiceQuestion = Omit<MultipleChoiceQuestion, "correct_option_index" | "explanation">;
@@ -51,11 +69,13 @@ export type SanitizedMultipleChoiceExercise = Omit<MultipleChoiceExercise, "ques
 export type ExerciseContent =
   | ChartClickExercise
   | MultipleChoiceExercise
+  | FileUploadExercise
   | { type: "candle_chart_select"; [key: string]: unknown };
 
 export type SanitizedExerciseContent =
   | SanitizedChartClickExercise
   | SanitizedMultipleChoiceExercise
+  | FileUploadExercise
   | { type: "candle_chart_select"; [key: string]: unknown };
 
 export type ChartClickAnswer = {
@@ -137,7 +157,26 @@ export const multipleChoiceSchema = z.object({
   questions: z.array(multipleChoiceQuestionSchema).min(1, "נדרשת לפחות שאלה אחת"),
 });
 
+export const fileUploadSchema = z.object({
+  type: z.literal("file_upload"),
+  instructions: z.string().min(1, "הוראות נדרשות").max(4000, "הוראות ארוכות מדי"),
+  required_files: z.coerce.number().int().min(1, "נדרש לפחות קובץ אחד").max(10, "עד 10 קבצים"),
+  completion_mode: z.enum(["manual_review", "auto_complete"]),
+});
+
+export const uploadedFileSchema = z.object({
+  path: z.string().min(1),
+  name: z.string().min(1),
+  mime: z.string().min(1),
+  size: z.number().int().min(0),
+});
+
+export const fileUploadAnswerSchema = z.object({
+  files: z.array(uploadedFileSchema).min(1, "נדרש להעלות לפחות קובץ אחד"),
+});
+
 export const exerciseContentSchema = z.discriminatedUnion("type", [
   chartClickSchema,
   multipleChoiceSchema,
+  fileUploadSchema,
 ]);

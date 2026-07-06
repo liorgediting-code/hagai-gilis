@@ -7,9 +7,19 @@ export type ModuleRow = {
   updated_at: string;
 };
 
-export type LessonRow = {
+export type UnitRow = {
   id: string;
   module_id: string;
+  title: string;
+  description: string | null;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LessonRow = {
+  id: string;
+  unit_id: string;
   title: string;
   description: string | null;
   video_url: string | null;
