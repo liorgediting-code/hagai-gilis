@@ -6,7 +6,7 @@ import { asUntyped } from "@/lib/supabase/untyped";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ModuleRow, LessonRow, LessonSummaryRow } from "@/lib/types/course-types";
+import type { ModuleRow, UnitRow, LessonRow, LessonSummaryRow } from "@/lib/types/course-types";
 
 export default async function AdminSummariesPage() {
   await requireAdmin();
@@ -17,6 +17,10 @@ export default async function AdminSummariesPage() {
     .from("modules")
     .select("*")
     .order("order_index")) as { data: ModuleRow[] | null; error: unknown };
+
+  const { data: units } = (await db
+    .from("units")
+    .select("id, module_id")) as { data: Pick<UnitRow, "id" | "module_id">[] | null; error: unknown };
 
   const { data: lessons } = (await db
     .from("lessons")
@@ -30,9 +34,12 @@ export default async function AdminSummariesPage() {
   const summaryIds = new Set((summaries ?? []).map((s) => s.lesson_id));
   const allLessons = lessons ?? [];
 
+  const unitToModule = new Map((units ?? []).map((u) => [u.id, u.module_id]));
   const byModule = allLessons.reduce<Record<string, LessonRow[]>>((acc, lesson) => {
-    if (!acc[lesson.module_id]) acc[lesson.module_id] = [];
-    acc[lesson.module_id].push(lesson);
+    const moduleId = unitToModule.get(lesson.unit_id);
+    if (!moduleId) return acc;
+    if (!acc[moduleId]) acc[moduleId] = [];
+    acc[moduleId].push(lesson);
     return acc;
   }, {});
 

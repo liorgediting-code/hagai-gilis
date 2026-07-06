@@ -36,7 +36,7 @@ export default async function AdminSummaryPage({ params }: SummaryEditorPageProp
     <div className="space-y-6">
       <div className="space-y-1">
         <Link
-          href={`/admin/modules/${lesson.module_id}/lessons`}
+          href={`/admin/units/${lesson.unit_id}/lessons`}
           className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           ← חזור לרשימת השיעורים
