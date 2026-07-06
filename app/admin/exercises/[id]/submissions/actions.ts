@@ -31,5 +31,6 @@ export async function reviewFileSubmissionAction(_prev: ActionState, formData: F
   if (error) return { status: "error", error: "שגיאה בעדכון ההגשה — נסה שנית" };
 
   if (parsed.data.exercise_id) revalidatePath(`/admin/exercises/${parsed.data.exercise_id}/submissions`);
+  revalidatePath("/admin/students");
   return { status: "success" };
 }

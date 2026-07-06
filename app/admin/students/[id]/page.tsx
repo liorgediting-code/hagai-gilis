@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PermissionToggle } from "./_components/permission-toggle";
 import { LessonUnlockControls } from "./_components/lesson-unlock-controls";
 import { MarketPermissionToggle, type MarketState } from "./_components/market-permission-toggle";
-import { ReviewControls } from "@/app/admin/exercises/_components/review-controls";
+import { FileSubmissionsCard } from "./_components/file-submissions-card";
 import type { Tables } from "@/lib/types/database";
 import type {
   UserPermissionRow,
@@ -16,7 +16,6 @@ import type {
   LessonUnlockRow,
   ExerciseSubmissionRow,
 } from "@/lib/types/course-types";
-import type { FileUploadAnswer } from "@/lib/types/exercise-types";
 
 type Profile = Tables<"profiles">;
 
@@ -270,38 +269,7 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
       )}
 
       {/* File submissions */}
-      {(fileSubs ?? []).filter((s) => s.exercises.content_json?.type === "file_upload").length > 0 && (
-        <Card>
-          <CardHeader className="border-b border-border/50 pb-4">
-            <CardTitle className="text-base font-semibold">הגשות קבצים</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ul className="divide-y divide-border/30">
-              {(fileSubs ?? [])
-                .filter((s) => s.exercises.content_json?.type === "file_upload")
-                .map((s) => {
-                  const files = (s.answer_data as FileUploadAnswer | null)?.files ?? [];
-                  const label = s.passed === true ? "אושר" : s.passed === false ? "נדחה" : "ממתין לבדיקה";
-                  const cls = s.passed === true ? "text-primary" : s.passed === false ? "text-destructive" : "text-amber-500";
-                  return (
-                    <li key={s.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex-1">
-                        <Link href={`/admin/exercises/${s.exercise_id}/submissions`} className="text-sm font-medium text-foreground hover:text-primary">
-                          {s.exercises.title}
-                        </Link>
-                        <p className="text-xs text-muted-foreground">{files.length} קבצים · {formatDate(s.submitted_at)}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`text-xs font-medium ${cls}`}>{label}</span>
-                        <ReviewControls submissionId={s.id} exerciseId={s.exercise_id} passed={s.passed} />
-                      </div>
-                    </li>
-                  );
-                })}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
+      <FileSubmissionsCard submissions={fileSubs ?? []} />
     </div>
   );
 }

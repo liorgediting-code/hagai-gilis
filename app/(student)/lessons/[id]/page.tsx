@@ -228,7 +228,7 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
             href={`/lessons/${prevLesson.id}`}
             className={buttonVariants({ variant: "outline", className: "min-h-11 gap-2" })}
           >
-            <ChevronRightIcon className="size-4" aria-hidden="true" />
+            <ChevronRightIcon className="size-4 rtl:rotate-180" aria-hidden="true" />
             שיעור קודם
           </Link>
         </div>
