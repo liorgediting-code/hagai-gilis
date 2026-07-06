@@ -49,10 +49,16 @@ export default async function AdminExercisesPage() {
           <DumbbellIcon className="size-6 text-primary" aria-hidden="true" />
           <h1 className="font-heading text-2xl font-bold">תרגילים</h1>
         </div>
-        <Link href="/admin/exercises/new" className={buttonVariants({ className: "min-h-11 h-11 px-4 gap-1.5" })}>
-          <PlusIcon className="size-4" aria-hidden="true" />
-          תרגיל חדש
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/exercises/new" className={buttonVariants({ className: "min-h-11 h-11 px-4 gap-1.5" })}>
+            <PlusIcon className="size-4" aria-hidden="true" />
+            תרגיל חדש
+          </Link>
+          <Link href="/admin/exercises/file/new" className={buttonVariants({ variant: "outline", className: "min-h-11 h-11 px-4 gap-1.5" })}>
+            <PlusIcon className="size-4" aria-hidden="true" />
+            תרגיל העלאת קובץ
+          </Link>
+        </div>
       </div>
 
       <Card>
@@ -74,12 +80,26 @@ export default async function AdminExercisesPage() {
                       {lessonMap.get(ex.lesson_id) ?? "—"} ·{" "}
                       <span className="text-primary">
                         {ex.content_json?.type === "chart_click" ? "לחיצה על גרף" :
-                         ex.content_json?.type === "multiple_choice" ? "שאלה אמריקאית" : "ישן"}
+                         ex.content_json?.type === "multiple_choice" ? "שאלה אמריקאית" :
+                         ex.content_json?.type === "file_upload" ? "העלאת קובץ" : "ישן"}
                       </span>
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <Link href={`/admin/exercises/edit/${ex.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                    {ex.content_json?.type === "file_upload" && (
+                      <Link
+                        href={`/admin/exercises/${ex.id}/submissions`}
+                        className={buttonVariants({ variant: "outline", size: "sm" })}
+                      >
+                        הגשות
+                      </Link>
+                    )}
+                    <Link
+                      href={ex.content_json?.type === "file_upload"
+                        ? `/admin/exercises/file/${ex.id}/edit`
+                        : `/admin/exercises/edit/${ex.id}`}
+                      className={buttonVariants({ variant: "ghost", size: "sm" })}
+                    >
                       <PencilIcon className="size-4" aria-hidden="true" />
                       <span className="sr-only">ערוך</span>
                     </Link>
