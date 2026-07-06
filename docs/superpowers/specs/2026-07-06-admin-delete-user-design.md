@@ -10,7 +10,7 @@ Let the sole admin permanently delete a student from the student detail page. De
 ## Decisions
 
 - **Placement**: Detail page only (`/admin/students/[id]`). No delete on the list page.
-- **Confirmation**: shadcn `AlertDialog` showing name + email and a permanence warning. One deliberate confirm click. No type-to-confirm.
+- **Confirmation**: modal dialog showing name + email and a permanence warning. One deliberate confirm click. No type-to-confirm. Reuses the existing `components/ui/dialog.tsx` (base-ui variant) — no new dependency.
 - **Deletion depth**: Hard delete of the auth user. No soft-delete / archive.
 
 ## Why no migration is needed
