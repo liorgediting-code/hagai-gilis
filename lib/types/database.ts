@@ -191,10 +191,10 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
-          module_id: string
           order_index: number
           pass_threshold: number
           title: string
+          unit_id: string
           updated_at: string
           video_url: string | null
         }
@@ -202,10 +202,10 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          module_id: string
           order_index?: number
           pass_threshold?: number
           title: string
+          unit_id: string
           updated_at?: string
           video_url?: string | null
         }
@@ -213,19 +213,19 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          module_id?: string
           order_index?: number
           pass_threshold?: number
           title?: string
+          unit_id?: string
           updated_at?: string
           video_url?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "lessons_module_id_fkey"
-            columns: ["module_id"]
+            foreignKeyName: "lessons_unit_id_fkey"
+            columns: ["unit_id"]
             isOneToOne: false
-            referencedRelation: "modules"
+            referencedRelation: "units"
             referencedColumns: ["id"]
           },
         ]
@@ -310,6 +310,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      units: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          module_id: string
+          order_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          module_id: string
+          order_index?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          module_id?: string
+          order_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "units_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_permissions: {
         Row: {
