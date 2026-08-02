@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 const VIDEO_ID = "BLx6qafxm0U";
 const WHATSAPP_NUMBER = "972525211955";
-const WHATSAPP_MESSAGE = "היי! ראיתי את ההדרכה ואני רוצה לשמוע פרטים על הליווי המלא 🚀";
+const WHATSAPP_MESSAGE = "היי! ראיתי את ההדרכה.\nאשמח לשמוע עוד פרטים 🚀";
 const WHATSAPP_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 
 const nextSteps = [
@@ -49,7 +49,7 @@ export default function LeadSuccessPage() {
           <CardContent className="space-y-5 pt-2">
             <div className="space-y-1 text-center">
               <h2 className="font-heading text-xl font-bold sm:text-2xl">
-                🎬 ההדרכה המלאה: שיטת 5 האזורים הבטוחים נחשפת!
+                🎬 ההדרכה המלאה: שיטת 5 האחוזים הבטוחים נחשפת!
               </h2>
               <p className="text-sm text-muted-foreground">
                 ⏳ זהירות! ב-20 הדקות הקרובות כל מה שחשבתם על מניות עלול להשתנות...
@@ -89,7 +89,7 @@ export default function LeadSuccessPage() {
         <Card className="w-full">
           <CardContent className="space-y-3 pt-2 text-center">
             <h2 className="font-heading text-lg font-bold sm:text-xl">
-              רוצה ליווי מלא? דברו איתי בוואטסאפ 🚀
+              מחכה לך בוואטסאפ 🚀
             </h2>
             <a
               href={WHATSAPP_HREF}

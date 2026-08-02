@@ -16,7 +16,7 @@ export function VideoEmbed({ videoId }: { videoId: string }) {
       <div className="relative aspect-video overflow-hidden rounded-lg ring-1 ring-black/10">
         <iframe
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-          title="ההדרכה המלאה: שיטת 5 האזורים הבטוחים"
+          title="ההדרכה המלאה: שיטת 5 האחוזים הבטוחים"
           allow="autoplay; encrypted-media; picture-in-picture"
           allowFullScreen
           className="absolute inset-0 size-full"
