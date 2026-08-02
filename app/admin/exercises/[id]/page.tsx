@@ -11,7 +11,7 @@ import type { LessonRow, ExerciseRow, ExerciseSubmissionRow } from "@/lib/types/
 type Profile = Tables<"profiles">;
 
 interface AdminStudentExercisesPageProps {
-  params: Promise<{ userId: string }>;
+  params: Promise<{ id: string }>;
 }
 
 function formatDate(iso: string): string {
@@ -20,7 +20,7 @@ function formatDate(iso: string): string {
 
 export default async function AdminStudentExercisesPage({ params }: AdminStudentExercisesPageProps) {
   await requireAdmin();
-  const { userId } = await params;
+  const { id: userId } = await params;
   const supabase = await createClient();
   const db = asUntyped(supabase);
 

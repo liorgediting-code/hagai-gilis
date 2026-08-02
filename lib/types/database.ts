@@ -99,6 +99,30 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          phone: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          phone: string
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          phone?: string
+          source?: string
+        }
+        Relationships: []
+      }
       lesson_progress: {
         Row: {
           completed_at: string | null
