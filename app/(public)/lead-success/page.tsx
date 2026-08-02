@@ -17,9 +17,9 @@ const WHATSAPP_MESSAGE = "היי! ראיתי את ההדרכה ואני רוצה
 const WHATSAPP_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 
 const nextSteps = [
-  { emoji: "🎯", text: "קדימה! למה אתה מחכה?" },
-  { emoji: "💰", text: "רוצה לצלול לעומק? כתוב לי ואשמח למסור פרטים על הליווי המלא ונמשיך משם" },
-  { emoji: "📱", text: "נשלח אליך עדכון גם בוואטסאפ" },
+  { emoji: "📱", text: "נשלחה אליך הודעה בוואטסאפ" },
+  { emoji: "💰", text: "אהבת את הסרטון? פשוט תכתוב לי \"אשמח לפרטים\" ונמשיך משם" },
+  { emoji: "🎯", text: "קדימה, למה אתה מחכה?" },
 ];
 
 const footerLinks = [
@@ -97,7 +97,7 @@ export default function LeadSuccessPage() {
               rel="noopener noreferrer"
               className="flex h-14 min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] text-lg font-bold text-white transition-opacity hover:opacity-90"
             >
-              💬 דברו איתי בוואטסאפ
+              💬 לפרטים נוספים שלחו לי הודעה
             </a>
           </CardContent>
         </Card>
