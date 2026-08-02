@@ -91,7 +91,7 @@ export default function LeadSuccessPage() {
         <Card className="w-full">
           <CardContent className="space-y-3 pt-2 text-center">
             <h2 className="font-heading text-lg font-bold sm:text-xl">
-              מחכה לך בוואטסאפ 🚀
+              אתה יכול להגיע אליי גם מכאן👇
             </h2>
             <a
               href={WHATSAPP_HREF}
