@@ -71,7 +71,9 @@ export default function LeadSuccessPage() {
         </Card>
 
         <div className="w-full space-y-4">
-          <h2 className="text-center font-heading text-xl font-bold">מה הלאה? 🚀</h2>
+          <h2 className="text-center font-heading text-xl font-bold text-foreground">
+            מה הלאה? 🚀
+          </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {nextSteps.map((step) => (
               <Card key={step.text}>
