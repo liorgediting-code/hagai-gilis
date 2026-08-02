@@ -31,7 +31,7 @@ const footerLinks = [
 
 export default function LeadSuccessPage() {
   return (
-    <div className="min-h-screen bg-background px-4 py-12">
+    <div className="light min-h-screen bg-background px-4 py-12">
       <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-4 text-center">
           <CheckCircle2Icon className="size-20 text-green-500" aria-hidden="true" />
@@ -59,10 +59,10 @@ export default function LeadSuccessPage() {
             <VideoEmbed videoId={VIDEO_ID} />
 
             <div className="space-y-1 rounded-lg bg-green-500/10 p-4 text-sm ring-1 ring-green-500/30">
-              <p className="text-green-400">
+              <p className="text-green-700">
                 💡 שים לב! ההדרכה ממוקדת (פחות מ-20 דקות) ונוגעת בבסיס הכי חשוב של השיטה
               </p>
-              <p className="text-green-400/90">
+              <p className="text-green-700/90">
                 📌 כדאי לצפות כשאתה פנוי, אבל עדיף להקשיב בדרכים מאשר לחכות לזמן ה&quot;מושלם&quot;
                 שלא תמיד מגיע...
               </p>

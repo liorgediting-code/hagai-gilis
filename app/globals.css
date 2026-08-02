@@ -83,6 +83,28 @@
   --sidebar-ring: oklch(0.52 0.20 245);
 }
 
+/* Forces the light palette on a subtree regardless of the .dark class on <html> — used by pages that need to opt out of the app-wide dark theme (e.g. public marketing pages). */
+.light {
+  --background: oklch(0.97 0.01 230);
+  --foreground: oklch(0.12 0.04 240);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.12 0.04 240);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.12 0.04 240);
+  --primary: oklch(0.52 0.20 245);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.92 0.03 230);
+  --secondary-foreground: oklch(0.18 0.05 240);
+  --muted: oklch(0.92 0.03 230);
+  --muted-foreground: oklch(0.48 0.05 240);
+  --accent: oklch(0.88 0.06 230);
+  --accent-foreground: oklch(0.18 0.05 240);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.86 0.04 230);
+  --input: oklch(0.86 0.04 230);
+  --ring: oklch(0.52 0.20 245);
+}
+
 .dark {
   /* Dark mode — כחול ים עמוק, מקצועי */
   --background: oklch(0.13 0.04 245);

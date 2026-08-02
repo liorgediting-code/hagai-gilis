@@ -11,7 +11,7 @@ export function VideoEmbed({ videoId }: { videoId: string }) {
 
   if (playing) {
     return (
-      <div className="relative aspect-video overflow-hidden rounded-lg ring-1 ring-foreground/10">
+      <div className="relative aspect-video overflow-hidden rounded-lg ring-1 ring-black/10">
         <iframe
           src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
           title="ההדרכה המלאה: שיטת 5 האזורים הבטוחים"
@@ -28,7 +28,7 @@ export function VideoEmbed({ videoId }: { videoId: string }) {
       type="button"
       onClick={() => setPlaying(true)}
       aria-label="נגן את הסרטון"
-      className="relative aspect-video w-full overflow-hidden rounded-lg bg-gradient-to-br from-secondary via-muted to-background ring-1 ring-foreground/10"
+      className="relative aspect-video w-full overflow-hidden rounded-lg bg-gradient-to-br from-neutral-800 via-neutral-900 to-black ring-1 ring-black/10"
     >
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="flex size-16 items-center justify-center rounded-full bg-white/90 shadow-lg sm:size-20">
