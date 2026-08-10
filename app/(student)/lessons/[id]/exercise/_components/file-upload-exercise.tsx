@@ -90,6 +90,21 @@ export function FileUploadExercise({ exerciseId, lessonId, content, existing, ne
           <p className="text-xs text-muted-foreground">ניתן להעלות עד {maxFiles} קבצים · עד 10MB לקובץ</p>
         </div>
 
+        {content.allow_text_answer && (
+          <div className="space-y-2">
+            <label htmlFor="text_note" className="text-sm font-medium">
+              {content.text_prompt} <span className="text-muted-foreground">(אופציונלי)</span>
+            </label>
+            <textarea
+              id="text_note"
+              name="text_note"
+              rows={4}
+              maxLength={2000}
+              className="flex w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
+            />
+          </div>
+        )}
+
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         <Button type="submit" disabled={isPending} className="min-h-11">
