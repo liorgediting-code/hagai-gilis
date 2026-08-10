@@ -8,7 +8,14 @@ export async function GET(request: NextRequest) {
   const nextParam = searchParams.get("next");
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=missing_code`);
+    // No `code` in the query — GoTrue may have used the implicit flow instead,
+    // putting tokens in the URL fragment, which this server route can never
+    // see. Redirect to a client page that can read the fragment: since this
+    // redirect's Location has no fragment of its own, the browser carries the
+    // original one forward automatically.
+    const confirmUrl = new URL(`${origin}/auth/confirm`);
+    if (type) confirmUrl.searchParams.set("type", type);
+    return NextResponse.redirect(confirmUrl);
   }
 
   // Determine redirect target before creating the response
