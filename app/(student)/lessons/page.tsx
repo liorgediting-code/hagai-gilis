@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
 import { requireUser } from "@/lib/auth/require-user";
 import { requirePageAccess } from "@/lib/auth/check-page-access";
-import { flattenModuleLessons, isLessonUnlocked } from "@/lib/course/ordering";
+import { flattenModuleLessons, isLessonUnlocked, compareOrder } from "@/lib/course/ordering";
 import { isLessonComplete, type ExerciseMeta } from "@/lib/course/completion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
@@ -64,7 +64,7 @@ export default async function LessonsPage() {
       .eq("passed", true) as unknown as Promise<{ data: { exercise_id: string }[] | null }>,
   ]);
 
-  const allModules = modulesData ?? [];
+  const allModules = (modulesData ?? []).sort(compareOrder);
   const allLessons = lessonsData ?? [];
 
   const allExercises = exercisesData ?? [];
@@ -101,8 +101,7 @@ export default async function LessonsPage() {
   // Previous lesson in each module's flattened (unit-then-lesson) linear sequence
   const prevLessonInModule = new Map<string, LessonRow | undefined>();
   for (const mod of allModules) {
-    const mUnits = (unitsByModule.get(mod.id) ?? []).sort((a, b) => a.order_index - b.order_index);
-    const flat = flattenModuleLessons(mUnits, allLessons);
+    const flat = flattenModuleLessons(unitsByModule.get(mod.id) ?? [], allLessons);
     flat.forEach((l, i) => prevLessonInModule.set(l.id, i > 0 ? flat[i - 1] : undefined));
   }
 
@@ -120,7 +119,7 @@ export default async function LessonsPage() {
       ) : (
         <div className="space-y-8">
           {allModules.map((module) => {
-            const mUnits = (unitsByModule.get(module.id) ?? []).sort((a, b) => a.order_index - b.order_index);
+            const mUnits = (unitsByModule.get(module.id) ?? []).sort(compareOrder);
             const moduleLessonCount = mUnits.reduce((n, u) => n + (lessonsByUnit.get(u.id)?.length ?? 0), 0);
             if (moduleLessonCount === 0) return null;
 
@@ -145,7 +144,7 @@ export default async function LessonsPage() {
 
                 <div className="space-y-4">
                   {mUnits.map((unit) => {
-                    const unitLessons = (lessonsByUnit.get(unit.id) ?? []).sort((a, b) => a.order_index - b.order_index);
+                    const unitLessons = (lessonsByUnit.get(unit.id) ?? []).sort(compareOrder);
                     if (unitLessons.length === 0) return null;
                     return (
                       <Card key={unit.id}>

@@ -1,22 +1,38 @@
 import type { LessonRow, UnitRow } from "@/lib/types/course-types";
 
 /**
- * Flatten a module's lessons into a single linear sequence:
- * ordered by the unit's order_index, then the lesson's order_index.
- * Progression (unlock / prev-next) runs over this linear list.
+ * order_index ties are common in the current data (admin never reordered),
+ * so every sequencing comparison needs a deterministic tiebreak. created_at
+ * (insertion order) keeps the sequence stable instead of falling back to
+ * whatever incidental order the DB returns for equal order_index values.
+ */
+export function compareOrder(
+  a: { id: string; order_index: number; created_at: string },
+  b: { id: string; order_index: number; created_at: string },
+): number {
+  return (
+    a.order_index - b.order_index ||
+    a.created_at.localeCompare(b.created_at) ||
+    a.id.localeCompare(b.id)
+  );
+}
+
+/**
+ * Flatten a module's lessons into a single linear sequence: units in the
+ * order given by the caller (already sorted), each unit's own lessons in
+ * order. Progression (unlock / prev-next) runs over this linear list.
  */
 export function flattenModuleLessons(
-  units: Pick<UnitRow, "id" | "order_index">[],
+  units: Pick<UnitRow, "id" | "order_index" | "created_at">[],
   lessons: LessonRow[],
 ): LessonRow[] {
-  const unitOrder = new Map(units.map((u) => [u.id, u.order_index]));
-  const inModule = lessons.filter((l) => unitOrder.has(l.unit_id));
-  return inModule.sort((a, b) => {
-    const ua = unitOrder.get(a.unit_id) ?? 0;
-    const ub = unitOrder.get(b.unit_id) ?? 0;
-    if (ua !== ub) return ua - ub;
-    return a.order_index - b.order_index;
-  });
+  const sortedUnits = [...units].sort(compareOrder);
+  const result: LessonRow[] = [];
+  for (const unit of sortedUnits) {
+    const unitLessons = lessons.filter((l) => l.unit_id === unit.id).sort(compareOrder);
+    result.push(...unitLessons);
+  }
+  return result;
 }
 
 /** Next lesson after `currentId` within an already-flattened linear sequence. */

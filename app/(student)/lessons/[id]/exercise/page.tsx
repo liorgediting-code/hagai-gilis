@@ -166,9 +166,9 @@ export default async function ExerciseFlowPage({ params }: Props) {
 
   const { data: mUnits } = (await db
     .from("units")
-    .select("id, order_index")
+    .select("id, order_index, created_at")
     .eq("module_id", unitRow?.module_id ?? "")
-    .order("order_index")) as { data: { id: string; order_index: number }[] | null };
+    .order("order_index")) as { data: { id: string; order_index: number; created_at: string }[] | null };
 
   const mUnitIds = (mUnits ?? []).map((u) => u.id);
   const { data: mLessons } = (await db

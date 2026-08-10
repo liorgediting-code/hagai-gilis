@@ -72,9 +72,9 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
 
   const { data: moduleUnits } = (await db
     .from("units")
-    .select("id, order_index")
+    .select("id, order_index, created_at")
     .eq("module_id", unitRow?.module_id ?? "")
-    .order("order_index")) as { data: { id: string; order_index: number }[] | null };
+    .order("order_index")) as { data: { id: string; order_index: number; created_at: string }[] | null };
 
   const unitIds = (moduleUnits ?? []).map((u) => u.id);
   const { data: moduleLessons } = (await db
