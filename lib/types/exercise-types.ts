@@ -171,14 +171,16 @@ export const multipleChoiceSchema = z.object({
   questions: z.array(multipleChoiceQuestionSchema).min(1, "נדרשת לפחות שאלה אחת"),
 });
 
-export const fileUploadSchema = z.object({
+const fileUploadBaseSchema = z.object({
   type: z.literal("file_upload"),
   instructions: z.string().min(1, "הוראות נדרשות").max(4000, "הוראות ארוכות מדי"),
   max_files: z.coerce.number().int().min(1, "נדרש לפחות קובץ אחד").max(10, "עד 10 קבצים"),
   completion_mode: z.enum(["manual_review", "auto_complete"]),
   allow_text_answer: z.boolean().default(false),
   text_prompt: z.string().max(200, "טקסט ההנחיה ארוך מדי").optional(),
-}).refine(
+});
+
+export const fileUploadSchema = fileUploadBaseSchema.refine(
   (data) => !data.allow_text_answer || (data.text_prompt !== undefined && data.text_prompt.trim().length > 0),
   { message: "טקסט הנחיה נדרש כאשר הערת טקסט מופעלת", path: ["text_prompt"] },
 );
@@ -198,5 +200,13 @@ export const fileUploadAnswerSchema = z.object({
 export const exerciseContentSchema = z.discriminatedUnion("type", [
   chartClickSchema,
   multipleChoiceSchema,
-  fileUploadSchema.innerType(),
-]);
+  fileUploadBaseSchema,
+]).superRefine((data, ctx) => {
+  if (data.type === "file_upload" && data.allow_text_answer && !data.text_prompt?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "טקסט הנחיה נדרש כאשר הערת טקסט מופעלת",
+      path: ["text_prompt"],
+    });
+  }
+});
