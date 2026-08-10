@@ -55,7 +55,7 @@ export function FileSubmissionsCard({ submissions }: Props) {
                     {files.length} קבצים · {formatDate(s.submitted_at)}
                   </p>
                   {textNote && (
-                    <p className="whitespace-pre-wrap pt-1 text-xs text-foreground">{textNote}</p>
+                    <p className="break-words whitespace-pre-wrap pt-1 text-xs text-foreground">{textNote}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-3">

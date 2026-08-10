@@ -103,7 +103,7 @@ export default async function ExerciseSubmissionsPage({ params }: Props) {
                         ))}
                       </div>
                       {textNote && (
-                        <p className="whitespace-pre-wrap rounded-lg bg-muted/40 px-3 py-2 text-xs text-foreground">
+                        <p className="break-words whitespace-pre-wrap rounded-lg bg-muted/40 px-3 py-2 text-xs text-foreground">
                           {textNote}
                         </p>
                       )}
