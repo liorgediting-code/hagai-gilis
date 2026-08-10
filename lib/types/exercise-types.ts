@@ -49,6 +49,10 @@ export type FileUploadExercise = {
   /** @deprecated legacy fixed count — read via getMaxFiles(); migrated to max_files. */
   required_files?: number;
   completion_mode: "manual_review" | "auto_complete";
+  /** When true, the student may (optionally) leave a text note alongside their upload. */
+  allow_text_answer?: boolean;
+  /** Admin-authored label shown to the student for the optional text note. Required when allow_text_answer is true. */
+  text_prompt?: string;
 };
 
 /** Backward-compatible read of the file cap, tolerating rows written before max_files. */
@@ -65,6 +69,8 @@ export type UploadedFile = {
 
 export type FileUploadAnswer = {
   files: UploadedFile[];
+  /** Optional student-authored note, present only if they wrote one. */
+  text_note?: string;
 };
 
 export type SanitizedChartClickExercise = Omit<ChartClickExercise, "acceptance_zone">;
@@ -170,7 +176,12 @@ export const fileUploadSchema = z.object({
   instructions: z.string().min(1, "הוראות נדרשות").max(4000, "הוראות ארוכות מדי"),
   max_files: z.coerce.number().int().min(1, "נדרש לפחות קובץ אחד").max(10, "עד 10 קבצים"),
   completion_mode: z.enum(["manual_review", "auto_complete"]),
-});
+  allow_text_answer: z.boolean().default(false),
+  text_prompt: z.string().max(200, "טקסט ההנחיה ארוך מדי").optional(),
+}).refine(
+  (data) => !data.allow_text_answer || (data.text_prompt !== undefined && data.text_prompt.trim().length > 0),
+  { message: "טקסט הנחיה נדרש כאשר הערת טקסט מופעלת", path: ["text_prompt"] },
+);
 
 export const uploadedFileSchema = z.object({
   path: z.string().min(1),
@@ -181,10 +192,11 @@ export const uploadedFileSchema = z.object({
 
 export const fileUploadAnswerSchema = z.object({
   files: z.array(uploadedFileSchema).min(1, "נדרש להעלות לפחות קובץ אחד"),
+  text_note: z.string().max(2000, "ההערה ארוכה מדי").optional(),
 });
 
 export const exerciseContentSchema = z.discriminatedUnion("type", [
   chartClickSchema,
   multipleChoiceSchema,
-  fileUploadSchema,
+  fileUploadSchema.innerType(),
 ]);
