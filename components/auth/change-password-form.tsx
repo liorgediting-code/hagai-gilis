@@ -5,7 +5,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { changePasswordAction } from "@/app/(student)/settings/actions";
+import { changePasswordAction } from "@/app/(auth)/actions";
 import type { ActionState } from "@/app/(auth)/actions";
 
 const initialState: ActionState = { status: "idle" };

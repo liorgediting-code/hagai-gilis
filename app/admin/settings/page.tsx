@@ -1,15 +1,8 @@
-import { redirect } from "next/navigation";
-
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { ChangePasswordForm } from "@/components/auth/change-password-form";
 
-export default async function SettingsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
+export default async function AdminSettingsPage() {
+  const { user } = await requireAdmin();
 
   return (
     <div className="mx-auto max-w-md space-y-6">
