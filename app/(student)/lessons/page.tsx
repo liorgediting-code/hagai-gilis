@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
 import { requireUser } from "@/lib/auth/require-user";
 import { requirePageAccess } from "@/lib/auth/check-page-access";
-import { flattenModuleLessons } from "@/lib/course/ordering";
+import { flattenModuleLessons, isLessonUnlocked } from "@/lib/course/ordering";
 import { isLessonComplete, type ExerciseMeta } from "@/lib/course/completion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type {
@@ -106,19 +106,6 @@ export default async function LessonsPage() {
     flat.forEach((l, i) => prevLessonInModule.set(l.id, i > 0 ? flat[i - 1] : undefined));
   }
 
-  function isLessonUnlocked(
-    lesson: LessonRow,
-    prevLesson: LessonRow | undefined,
-  ): boolean {
-    // First lesson of any module (no previous lesson in the flattened sequence) is always open
-    if (!prevLesson) return true;
-    // Manual admin unlock (override)
-    if (manualUnlockSet.has(lesson.id)) return true;
-    // Previous lesson is complete by any path (exercise passed / approved / watched)
-    if (completedSet.has(prevLesson.id)) return true;
-    return false;
-  }
-
   const hasAnyLesson = allLessons.length > 0;
 
   return (
@@ -171,7 +158,12 @@ export default async function LessonsPage() {
                           <ul className="divide-y divide-border/30">
                             {unitLessons.map((lesson, idx) => {
                               const prevLesson = prevLessonInModule.get(lesson.id);
-                              const unlocked = isLessonUnlocked(lesson, prevLesson);
+                              const unlocked = isLessonUnlocked(
+                                lesson.id,
+                                prevLesson?.id ?? null,
+                                manualUnlockSet,
+                                completedSet,
+                              );
                               const completed = completedSet.has(lesson.id);
 
                               if (!unlocked) {

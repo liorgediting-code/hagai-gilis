@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CheckCircleIcon, ChevronRightIcon } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
@@ -7,6 +7,7 @@ import { asUntyped } from "@/lib/supabase/untyped";
 import { requireUser } from "@/lib/auth/require-user";
 import { requirePageAccess } from "@/lib/auth/check-page-access";
 import { flattenModuleLessons, nextLessonInSequence } from "@/lib/course/ordering";
+import { checkLessonUnlocked } from "@/lib/course/access";
 import { buttonVariants } from "@/components/ui/button";
 import { ExerciseFlow } from "./_components/exercise-flow";
 import type { ExerciseRow, LessonRow } from "@/lib/types/course-types";
@@ -118,6 +119,15 @@ export default async function ExerciseFlowPage({ params }: Props) {
 
   if (!lesson) notFound();
 
+  // Exercises only open once the student has marked the lesson's video watched.
+  const { data: ownProgress } = (await db
+    .from("lesson_progress")
+    .select("completed_at")
+    .eq("user_id", user.id)
+    .eq("lesson_id", lessonId)
+    .maybeSingle()) as { data: { completed_at: string | null } | null };
+  if (ownProgress?.completed_at == null) redirect(`/lessons/${lessonId}`);
+
   // Fetch all exercises for this lesson (all levels)
   const { data: exercisesRaw } = (await db
     .from("exercises")
@@ -170,6 +180,14 @@ export default async function ExerciseFlowPage({ params }: Props) {
 
   const ordered = flattenModuleLessons(mUnits ?? [], mLessons ?? []);
   const nextLesson = nextLessonInSequence(ordered, lessonId);
+
+  // Re-check the unlock rule server-side — the /lessons list hides the link,
+  // but a direct URL to this lesson's exercise flow must not bypass the sequence.
+  const currentIdx = ordered.findIndex((l) => l.id === lessonId);
+  const prevLesson = currentIdx > 0 ? ordered[currentIdx - 1] : null;
+  if (!(await checkLessonUnlocked(supabase, user.id, lessonId, prevLesson))) {
+    redirect("/lessons");
+  }
 
   // Determine current level
   const levelState = determineLevel(chartExercises, submissions);

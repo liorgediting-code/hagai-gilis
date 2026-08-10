@@ -24,3 +24,24 @@ export function nextLessonInSequence(ordered: LessonRow[], currentId: string): L
   const idx = ordered.findIndex((l) => l.id === currentId);
   return idx >= 0 && idx < ordered.length - 1 ? ordered[idx + 1] : null;
 }
+
+/**
+ * Single source of truth for "is this lesson unlocked for this student".
+ * Mirrors the rule shown in the /lessons list — used there and re-checked
+ * server-side on the lesson detail / exercise pages so a direct link can't
+ * bypass the sequence.
+ */
+export function isLessonUnlocked(
+  lessonId: string,
+  prevLessonId: string | null,
+  manualUnlockSet: ReadonlySet<string>,
+  completedSet: ReadonlySet<string>,
+): boolean {
+  // First lesson of any module (no previous lesson in the flattened sequence) is always open
+  if (!prevLessonId) return true;
+  // Manual admin unlock (override)
+  if (manualUnlockSet.has(lessonId)) return true;
+  // Previous lesson is complete by any path (exercise passed / approved / watched)
+  if (completedSet.has(prevLessonId)) return true;
+  return false;
+}

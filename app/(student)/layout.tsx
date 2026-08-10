@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { SettingsIcon } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
@@ -89,16 +90,25 @@ export default async function StudentLayout({ children }: { children: ReactNode 
               </span>
             )}
             {user && (
-              <form action={logoutAction}>
-                <Button
-                  type="submit"
-                  variant="ghost"
-                  size="sm"
-                  className="min-h-9 text-muted-foreground hover:text-foreground"
+              <>
+                <Link
+                  href="/settings"
+                  className="flex min-h-9 min-w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label="הגדרות"
                 >
-                  התנתקות
-                </Button>
-              </form>
+                  <SettingsIcon className="size-5" aria-hidden="true" />
+                </Link>
+                <form action={logoutAction}>
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    size="sm"
+                    className="min-h-9 text-muted-foreground hover:text-foreground"
+                  >
+                    התנתקות
+                  </Button>
+                </form>
+              </>
             )}
           </div>
         </div>
@@ -115,16 +125,25 @@ export default async function StudentLayout({ children }: { children: ReactNode 
               <span className="text-sm text-muted-foreground">שלום, {name}</span>
             )}
             {user && (
-              <form action={logoutAction}>
-                <Button
-                  type="submit"
-                  variant="ghost"
-                  size="sm"
-                  className="min-h-9 px-2 text-xs text-muted-foreground hover:text-foreground"
+              <>
+                <Link
+                  href="/settings"
+                  className="flex min-h-9 min-w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label="הגדרות"
                 >
-                  יציאה
-                </Button>
-              </form>
+                  <SettingsIcon className="size-5" aria-hidden="true" />
+                </Link>
+                <form action={logoutAction}>
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    size="sm"
+                    className="min-h-9 px-2 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    יציאה
+                  </Button>
+                </form>
+              </>
             )}
           </div>
         </div>

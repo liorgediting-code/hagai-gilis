@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ChevronRightIcon, FileTextIcon, DumbbellIcon } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/auth/require-user";
 import { requirePageAccess } from "@/lib/auth/check-page-access";
 import { flattenModuleLessons, nextLessonInSequence } from "@/lib/course/ordering";
 import { isLessonComplete, type ExerciseMeta } from "@/lib/course/completion";
+import { checkLessonUnlocked } from "@/lib/course/access";
 import { VideoPlayer } from "@/components/lesson/video-player";
 import { MarkCompleteButton } from "@/app/(student)/_components/mark-complete-button";
 import { FileUploadExercise as FileUploadExerciseClient } from "./exercise/_components/file-upload-exercise";
@@ -91,6 +92,12 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
   const currentIndex = orderedSiblings.findIndex((s) => s.id === id);
   const prevLesson = currentIndex > 0 ? orderedSiblings[currentIndex - 1] : null;
   const nextLesson = nextLessonInSequence(orderedSiblings, id);
+
+  // Re-check the unlock rule server-side — the /lessons list hides the link,
+  // but a direct URL must not bypass the sequence.
+  if (!(await checkLessonUnlocked(supabase, user.id, id, prevLesson))) {
+    redirect("/lessons");
+  }
 
   const exercises = lessonExercises ?? [];
   const fileExercises = exercises.filter((e) => e.content_json?.type === "file_upload");

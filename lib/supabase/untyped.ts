@@ -6,7 +6,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Minimal generic client interface for untyped table access
-type UntypedClient = SupabaseClient;
+export type UntypedClient = SupabaseClient;
 
 export function asUntyped(client: unknown): UntypedClient {
   return client as UntypedClient;
