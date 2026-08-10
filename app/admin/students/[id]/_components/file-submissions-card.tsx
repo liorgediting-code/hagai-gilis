@@ -37,7 +37,9 @@ export function FileSubmissionsCard({ submissions }: Props) {
       <CardContent className="p-0">
         <ul className="divide-y divide-border/30">
           {fileSubs.map((s) => {
-            const files = (s.answer_data as FileUploadAnswer | null)?.files ?? [];
+            const answer = s.answer_data as FileUploadAnswer | null;
+            const files = answer?.files ?? [];
+            const textNote = answer?.text_note;
             const label = s.passed === true ? "אושר" : s.passed === false ? "נדחה" : "ממתין לבדיקה";
             const cls = s.passed === true ? "text-primary" : s.passed === false ? "text-destructive" : "text-amber-500";
             return (
@@ -52,6 +54,9 @@ export function FileSubmissionsCard({ submissions }: Props) {
                   <p className="text-xs text-muted-foreground">
                     {files.length} קבצים · {formatDate(s.submitted_at)}
                   </p>
+                  {textNote && (
+                    <p className="whitespace-pre-wrap pt-1 text-xs text-foreground">{textNote}</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`text-xs font-medium ${cls}`}>{label}</span>

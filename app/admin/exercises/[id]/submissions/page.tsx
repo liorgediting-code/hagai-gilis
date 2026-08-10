@@ -80,7 +80,9 @@ export default async function ExerciseSubmissionsPage({ params }: Props) {
             <ul className="divide-y divide-border/30">
               {submissions.map((s) => {
                 const p = profileMap.get(s.user_id);
-                const files = (s.answer_data as FileUploadAnswer | null)?.files ?? [];
+                const answer = s.answer_data as FileUploadAnswer | null;
+                const files = answer?.files ?? [];
+                const textNote = answer?.text_note;
                 const st = statusLabel(s.passed);
                 return (
                   <li key={s.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -100,6 +102,11 @@ export default async function ExerciseSubmissionsPage({ params }: Props) {
                           </a>
                         ))}
                       </div>
+                      {textNote && (
+                        <p className="whitespace-pre-wrap rounded-lg bg-muted/40 px-3 py-2 text-xs text-foreground">
+                          {textNote}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-3">
                       <span className={`text-xs font-medium ${st.cls}`}>{st.text}</span>
