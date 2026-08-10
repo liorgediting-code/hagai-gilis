@@ -24,6 +24,10 @@ export function ConfirmClient() {
     const refreshToken = hashParams.get("refresh_token");
     const type = searchParams.get("type") ?? hashParams.get("type");
 
+    // Strip the fragment from the address bar immediately — tokens shouldn't
+    // linger in the URL or browser history once read.
+    window.history.replaceState({}, "", window.location.pathname + window.location.search);
+
     if (!accessToken || !refreshToken) {
       router.replace("/login?error=missing_code");
       return;
@@ -40,6 +44,9 @@ export function ConfirmClient() {
         if (type === "invite") router.replace("/invite/set-password");
         else if (type === "recovery") router.replace("/reset-password");
         else router.replace("/");
+      })
+      .catch(() => {
+        router.replace("/login?error=missing_code");
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

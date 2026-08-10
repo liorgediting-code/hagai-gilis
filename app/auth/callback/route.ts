@@ -18,11 +18,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(confirmUrl);
   }
 
-  // Determine redirect target before creating the response
+  // Determine redirect target before creating the response.
+  // next must be an in-app relative path — reject anything that could be
+  // parsed as a different host (open redirect).
+  const isSafeNext = nextParam?.startsWith("/") && !nextParam.startsWith("//");
   let redirectTo = `${origin}/`;
   if (type === "invite") redirectTo = `${origin}/invite/set-password`;
   else if (type === "recovery") redirectTo = `${origin}/reset-password`;
-  else if (nextParam) redirectTo = `${origin}${nextParam}`;
+  else if (isSafeNext) redirectTo = `${origin}${nextParam}`;
 
   const response = NextResponse.redirect(redirectTo);
 
