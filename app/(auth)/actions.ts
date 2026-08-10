@@ -6,7 +6,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import type { Tables } from "@/lib/types/database";
 
 // ---------------------------------------------------------------------------
@@ -181,79 +180,6 @@ export async function resetPasswordAction(
 }
 
 // ---------------------------------------------------------------------------
-// activateAccountAction — student sets password for the first time (no session required)
-// ---------------------------------------------------------------------------
-const activateSchema = z
-  .object({
-    email: z.string().email("כתובת אימייל לא תקינה"),
-    password: z.string().min(8, "הסיסמה חייבת להכיל לפחות 8 תווים"),
-    confirmPassword: z.string().min(1, "נדרש אימות סיסמה"),
-  })
-  .refine((d) => d.password === d.confirmPassword, {
-    message: "הסיסמאות אינן תואמות",
-    path: ["confirmPassword"],
-  });
-
-export async function activateAccountAction(
-  _prevState: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
-  const parsed = activateSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-    confirmPassword: formData.get("confirmPassword"),
-  });
-
-  if (!parsed.success) {
-    return { status: "error", error: parsed.error.errors[0]?.message ?? "קלט לא תקין" };
-  }
-
-  const admin = createAdminClient();
-
-  // Fetch all users and find by email (small platform — up to 1000 users)
-  const { data: usersData, error: listError } = await admin.auth.admin.listUsers({ perPage: 1000 });
-  if (listError || !usersData?.users) {
-    return { status: "error", error: "שגיאה בגישה למשתמשים — נסה שנית" };
-  }
-  const existing = usersData.users.find(
-    (u) => u.email?.toLowerCase() === parsed.data.email.toLowerCase(),
-  );
-
-  if (!existing) {
-    return { status: "error", error: "המייל לא נמצא במערכת — ודא שחגי הוסיף אותך" };
-  }
-
-  const { error: updateError } = await admin.auth.admin.updateUserById(existing.id, {
-    password: parsed.data.password,
-  });
-
-  if (updateError) {
-    return { status: "error", error: "שגיאה בהגדרת הסיסמה — נסה שנית" };
-  }
-
-  // Ensure profile row exists — trigger may not have fired if user was created outside the invite flow
-  await admin.from("profiles").upsert(
-    {
-      id: existing.id,
-      email: parsed.data.email,
-      full_name: (existing.user_metadata?.full_name as string | undefined) ?? null,
-      role: "student",
-    },
-    { onConflict: "id", ignoreDuplicates: true },
-  );
-
-  // Sign in automatically with the new password
-  const supabase = await createClient();
-  await supabase.auth.signInWithPassword({
-    email: parsed.data.email,
-    password: parsed.data.password,
-  });
-
-  revalidatePath("/", "layout");
-  redirect("/");
-}
-
-// ---------------------------------------------------------------------------
 // setInvitePasswordAction — first-time password after admin invite
 // ---------------------------------------------------------------------------
 export async function setInvitePasswordAction(
@@ -273,6 +199,16 @@ export async function setInvitePasswordAction(
   }
 
   const supabase = await createClient();
+
+  // Verify the invite session exists before attempting the update.
+  const { data: { user }, error: sessionError } = await supabase.auth.getUser();
+  if (sessionError || !user) {
+    return {
+      status: "error",
+      error: "פג תוקף קישור ההזמנה — בקש מחגי לשלוח הזמנה חדשה",
+    };
+  }
+
   const { error } = await supabase.auth.updateUser({
     password: parsed.data.password,
   });
