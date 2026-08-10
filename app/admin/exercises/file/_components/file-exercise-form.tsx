@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ export function FileExerciseForm({
   action, lessons, exerciseId, defaultLessonId, defaultTitle, defaultOrderIndex, defaultContent,
 }: Props) {
   const [state, formAction, isPending] = useActionState(action, initialState);
+  const [allowTextAnswer, setAllowTextAnswer] = useState(defaultContent?.allow_text_answer ?? false);
 
   return (
     <form action={formAction} className="space-y-5">
@@ -88,6 +89,31 @@ export function FileExerciseForm({
         <p className="text-xs text-muted-foreground">
           בדיקה ידנית: התלמיד מסמן &quot;ממתין לבדיקה&quot; עד שהמנהל מאשר. אוטומטי: התרגיל מושלם מיד עם ההעלאה.
         </p>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <input
+            id="allow_text_answer"
+            name="allow_text_answer"
+            type="checkbox"
+            defaultChecked={defaultContent?.allow_text_answer ?? false}
+            onChange={(e) => setAllowTextAnswer(e.target.checked)}
+            className="size-4 rounded border-input"
+          />
+          <Label htmlFor="allow_text_answer">אפשר לתלמיד להשאיר הערת טקסט (אופציונלי)</Label>
+        </div>
+        {allowTextAnswer && (
+          <div className="space-y-2 pt-1">
+            <Label htmlFor="text_prompt">טקסט ההנחיה לתלמיד</Label>
+            <Input
+              id="text_prompt"
+              name="text_prompt"
+              defaultValue={defaultContent?.text_prompt ?? ""}
+              placeholder="לדוגמה: נמק את בחירתך"
+            />
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">
