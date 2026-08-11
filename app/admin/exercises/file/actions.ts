@@ -23,6 +23,8 @@ function buildContent(formData: FormData):
     instructions: formData.get("instructions"),
     max_files: formData.get("max_files"),
     completion_mode: formData.get("completion_mode"),
+    allow_text_answer: formData.get("allow_text_answer") === "on",
+    text_prompt: formData.get("text_prompt") || undefined,
   });
   if (!parsed.success) return { ok: false, error: parsed.error.errors[0]?.message ?? "תוכן לא תקין" };
   return { ok: true, data: parsed.data };

@@ -53,6 +53,12 @@ export async function submitFileUploadAction(formData: FormData): Promise<FileSu
     if (f.size > MAX_BYTES) return { status: "error", error: "קובץ גדול מדי (מקסימום 10MB)" };
   }
 
+  const rawNote = formData.get("text_note");
+  const textNote = typeof rawNote === "string" ? rawNote.trim() : "";
+  if (textNote.length > 2000) {
+    return { status: "error", error: "ההערה ארוכה מדי" };
+  }
+
   const uploaded: UploadedFile[] = [];
   for (const f of files) {
     const safeName = f.name.replace(/[^\w.\-]+/g, "_");
@@ -80,7 +86,7 @@ export async function submitFileUploadAction(formData: FormData): Promise<FileSu
     user_id: user.id,
     exercise_id: exerciseId,
     attempt_number: nextAttempt,
-    answer_data: { files: uploaded },
+    answer_data: textNote ? { files: uploaded, text_note: textNote } : { files: uploaded },
     passed,
     score_pct: null,
   })) as { error: unknown };
