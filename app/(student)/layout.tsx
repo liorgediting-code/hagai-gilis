@@ -3,42 +3,34 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SettingsIcon } from "lucide-react";
 
-import { createClient } from "@/lib/supabase/server";
-import { asUntyped } from "@/lib/supabase/untyped";
+import { getSessionUser, getSessionProfile, getSessionDeniedPages } from "@/lib/auth/session";
 import { logoutAction } from "@/app/(auth)/actions";
 import { Button } from "@/components/ui/button";
-import type { UserPermissionRow } from "@/lib/types/course-types";
 import { BlockedBanner } from "./_components/blocked-banner";
 import { BottomTabBar } from "./_components/bottom-tab-bar";
 
 export default async function StudentLayout({ children }: { children: ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Cached per-request (lib/auth/session.ts) — pages further down the tree
+  // (requirePageAccess, requireUser, etc.) reuse these same results instead
+  // of re-querying auth/profiles/user_permissions.
+  const user = await getSessionUser();
 
   // Redirect admins to admin panel; unauthenticated users see content freely while auth is disabled.
-  // Fetch profile (role + name) and permissions in parallel — one round-trip instead of three.
   let name: string | null = null;
   const denied = new Set<string>();
 
   if (user) {
-    const [{ data: profile }, { data: deniedRows }] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("role, full_name")
-        .eq("id", user.id)
-        .single() as unknown as Promise<{ data: { role: string; full_name: string | null } | null }>,
-      asUntyped(supabase)
-        .from("user_permissions")
-        .select("page")
-        .eq("user_id", user.id) as unknown as Promise<{ data: UserPermissionRow[] | null }>,
+    const [profile, deniedPages] = await Promise.all([
+      getSessionProfile(),
+      getSessionDeniedPages(),
     ]);
 
     if (profile?.role === "admin") redirect("/admin");
     name = profile?.full_name ?? null;
     // "market" uses a grant model (row = allowed), not a deny model — exclude it here.
-    (deniedRows ?? []).filter((r) => r.page !== "market").forEach((r) => denied.add(r.page));
+    deniedPages.forEach((page) => {
+      if (page !== "market") denied.add(page);
+    });
   }
 
   const deniedList = Array.from(denied);

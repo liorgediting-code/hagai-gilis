@@ -49,6 +49,7 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
     { data: progress },
     { data: summary },
     { data: lessonExercises },
+    { data: moduleUnits },
   ] = await Promise.all([
     (db
       .from("lesson_progress")
@@ -68,13 +69,14 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
       .order("order_index", { ascending: true }) as unknown) as Promise<{
       data: { id: string; lesson_id: string; level: number; order_index: number; content_json: { type?: string } | null }[] | null;
     }>,
+    // Independent of the three queries above — only depends on unitRow,
+    // which is already resolved — so it runs alongside them instead of after.
+    (db
+      .from("units")
+      .select("id, order_index, created_at")
+      .eq("module_id", unitRow?.module_id ?? "")
+      .order("order_index") as unknown) as Promise<{ data: { id: string; order_index: number; created_at: string }[] | null }>,
   ]);
-
-  const { data: moduleUnits } = (await db
-    .from("units")
-    .select("id, order_index, created_at")
-    .eq("module_id", unitRow?.module_id ?? "")
-    .order("order_index")) as { data: { id: string; order_index: number; created_at: string }[] | null };
 
   const unitIds = (moduleUnits ?? []).map((u) => u.id);
   const { data: moduleLessons } = (await db

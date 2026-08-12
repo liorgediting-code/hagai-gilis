@@ -128,15 +128,26 @@ export default async function ExerciseFlowPage({ params }: Props) {
     .maybeSingle()) as { data: { completed_at: string | null } | null };
   if (ownProgress?.completed_at == null) redirect(`/lessons/${lessonId}`);
 
-  // Fetch all exercises for this lesson (all levels)
-  const { data: exercisesRaw } = (await db
-    .from("exercises")
-    .select("id, lesson_id, title, description, order_index, level, content_json, created_at, updated_at")
-    .eq("lesson_id", lessonId)
-    .order("order_index", { ascending: true })) as {
-    data: ExerciseRow[] | null;
-    error: unknown;
-  };
+  // Exercises and the sibling unit row are both independent of one another
+  // (unitRow only needs lesson.unit_id, already resolved) — fetch together.
+  const [
+    { data: exercisesRaw },
+    { data: unitRow },
+  ] = await Promise.all([
+    (db
+      .from("exercises")
+      .select("id, lesson_id, title, description, order_index, level, content_json, created_at, updated_at")
+      .eq("lesson_id", lessonId)
+      .order("order_index", { ascending: true }) as unknown) as Promise<{
+      data: ExerciseRow[] | null;
+      error: unknown;
+    }>,
+    (db
+      .from("units")
+      .select("id, module_id, order_index")
+      .eq("id", lesson.unit_id)
+      .single() as unknown) as Promise<{ data: { id: string; module_id: string; order_index: number } | null }>,
+  ]);
 
   const exercises = exercisesRaw ?? [];
 
@@ -147,28 +158,27 @@ export default async function ExerciseFlowPage({ params }: Props) {
 
   if (chartExercises.length === 0) notFound();
 
-  // Fetch submissions for this lesson's exercises
+  // Next lesson in this module — powers the "continue" buttons after a pass.
+  // Submissions (needs exerciseIds above) and module units (needs unitRow
+  // above) are independent of each other — fetch together.
   const exerciseIds = chartExercises.map((e) => e.id);
-  const { data: submissionsRaw } = (await db
-    .from("exercise_submissions")
-    .select("exercise_id, passed")
-    .eq("user_id", user.id)
-    .in("exercise_id", exerciseIds)) as { data: SubmissionRow[] | null; error: unknown };
+  const [
+    { data: submissionsRaw },
+    { data: mUnits },
+  ] = await Promise.all([
+    (db
+      .from("exercise_submissions")
+      .select("exercise_id, passed")
+      .eq("user_id", user.id)
+      .in("exercise_id", exerciseIds) as unknown) as Promise<{ data: SubmissionRow[] | null; error: unknown }>,
+    (db
+      .from("units")
+      .select("id, order_index, created_at")
+      .eq("module_id", unitRow?.module_id ?? "")
+      .order("order_index") as unknown) as Promise<{ data: { id: string; order_index: number; created_at: string }[] | null }>,
+  ]);
 
   const submissions = submissionsRaw ?? [];
-
-  // Next lesson in this module — powers the "continue" buttons after a pass.
-  const { data: unitRow } = (await db
-    .from("units")
-    .select("id, module_id, order_index")
-    .eq("id", lesson.unit_id)
-    .single()) as { data: { id: string; module_id: string; order_index: number } | null };
-
-  const { data: mUnits } = (await db
-    .from("units")
-    .select("id, order_index, created_at")
-    .eq("module_id", unitRow?.module_id ?? "")
-    .order("order_index")) as { data: { id: string; order_index: number; created_at: string }[] | null };
 
   const mUnitIds = (mUnits ?? []).map((u) => u.id);
   const { data: mLessons } = (await db

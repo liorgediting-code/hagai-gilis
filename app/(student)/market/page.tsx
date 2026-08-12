@@ -3,6 +3,7 @@ import { TrendingUpIcon, LockIcon, CalendarIcon } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
 import { asUntyped } from "@/lib/supabase/untyped";
+import { getSessionUser } from "@/lib/auth/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MarketPostRow, LessonProgressRow } from "@/lib/types/course-types";
 import type { Tables } from "@/lib/types/database";
@@ -19,13 +20,10 @@ function formatDate(dateStr: string): string {
 }
 
 export default async function MarketPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getSessionUser();
   if (!user) redirect("/login");
 
+  const supabase = await createClient();
   const db = asUntyped(supabase);
 
   const [

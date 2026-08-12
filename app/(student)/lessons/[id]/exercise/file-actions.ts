@@ -53,17 +53,22 @@ export async function submitFileUploadAction(formData: FormData): Promise<FileSu
     if (f.size > MAX_BYTES) return { status: "error", error: "קובץ גדול מדי (מקסימום 10MB)" };
   }
 
-  const uploaded: UploadedFile[] = [];
-  for (const f of files) {
-    const safeName = f.name.replace(/[^\w.\-]+/g, "_");
-    const path = `${exerciseId}/${user.id}/${randomUUID()}-${safeName}`;
-    const { error: upErr } = await supabase.storage.from("exercise-uploads").upload(path, f, {
-      contentType: f.type,
-      upsert: false,
-    });
-    if (upErr) return { status: "error", error: "שגיאה בהעלאת הקובץ — נסה שנית" };
-    uploaded.push({ path, name: f.name, mime: f.type, size: f.size });
+  const uploadResults = await Promise.all(
+    files.map(async (f): Promise<UploadedFile | null> => {
+      const safeName = f.name.replace(/[^\w.\-]+/g, "_");
+      const path = `${exerciseId}/${user.id}/${randomUUID()}-${safeName}`;
+      const { error: upErr } = await supabase.storage.from("exercise-uploads").upload(path, f, {
+        contentType: f.type,
+        upsert: false,
+      });
+      if (upErr) return null;
+      return { path, name: f.name, mime: f.type, size: f.size };
+    }),
+  );
+  if (uploadResults.some((r) => r === null)) {
+    return { status: "error", error: "שגיאה בהעלאת הקובץ — נסה שנית" };
   }
+  const uploaded = uploadResults as UploadedFile[];
 
   const { data: existing } = (await supabase
     .from("exercise_submissions")
