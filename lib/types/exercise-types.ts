@@ -67,6 +67,16 @@ export type FileUploadAnswer = {
   files: UploadedFile[];
 };
 
+export type TextAnswerExercise = {
+  type: "text_answer";
+  instructions: string;
+  completion_mode: "manual_review" | "auto_complete";
+};
+
+export type TextAnswerAnswer = {
+  text: string;
+};
+
 export type SanitizedChartClickExercise = Omit<ChartClickExercise, "acceptance_zone">;
 
 export type SanitizedMultipleChoiceQuestion = Omit<MultipleChoiceQuestion, "correct_option_index" | "explanation">;
@@ -78,12 +88,14 @@ export type ExerciseContent =
   | ChartClickExercise
   | MultipleChoiceExercise
   | FileUploadExercise
+  | TextAnswerExercise
   | { type: "candle_chart_select"; [key: string]: unknown };
 
 export type SanitizedExerciseContent =
   | SanitizedChartClickExercise
   | SanitizedMultipleChoiceExercise
   | FileUploadExercise
+  | TextAnswerExercise
   | { type: "candle_chart_select"; [key: string]: unknown };
 
 export type ChartClickAnswer = {
@@ -183,8 +195,19 @@ export const fileUploadAnswerSchema = z.object({
   files: z.array(uploadedFileSchema).min(1, "נדרש להעלות לפחות קובץ אחד"),
 });
 
+export const textAnswerSchema = z.object({
+  type: z.literal("text_answer"),
+  instructions: z.string().min(1, "הוראות נדרשות").max(4000, "הוראות ארוכות מדי"),
+  completion_mode: z.enum(["manual_review", "auto_complete"]),
+});
+
+export const textAnswerAnswerSchema = z.object({
+  text: z.string().trim().min(1, "נדרש לכתוב תשובה"),
+});
+
 export const exerciseContentSchema = z.discriminatedUnion("type", [
   chartClickSchema,
   multipleChoiceSchema,
   fileUploadSchema,
+  textAnswerSchema,
 ]);

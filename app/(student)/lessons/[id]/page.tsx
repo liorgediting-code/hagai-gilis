@@ -12,10 +12,11 @@ import { checkLessonUnlocked } from "@/lib/course/access";
 import { VideoPlayer } from "@/components/lesson/video-player";
 import { MarkCompleteButton } from "@/app/(student)/_components/mark-complete-button";
 import { FileUploadExercise as FileUploadExerciseClient } from "./exercise/_components/file-upload-exercise";
+import { TextAnswerExercise as TextAnswerExerciseClient } from "./exercise/_components/text-answer-exercise";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { LessonRow, LessonProgressRow, LessonSummaryRow } from "@/lib/types/course-types";
-import type { FileUploadExercise } from "@/lib/types/exercise-types";
+import type { FileUploadExercise, TextAnswerExercise } from "@/lib/types/exercise-types";
 
 interface LessonPageProps {
   params: Promise<{ id: string }>;
@@ -101,6 +102,7 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
 
   const exercises = lessonExercises ?? [];
   const fileExercises = exercises.filter((e) => e.content_json?.type === "file_upload");
+  const textExercises = exercises.filter((e) => e.content_json?.type === "text_answer");
   const hasChartExercise = exercises.some(
     (e) => e.content_json?.type === "chart_click" || e.content_json?.type === "multiple_choice",
   );
@@ -114,7 +116,7 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
     data: { exercise_id: string; passed: boolean | null }[] | null;
   };
 
-  const fileSubMap = new Map((subs ?? []).map((s) => [s.exercise_id, s]));
+  const submissionMap = new Map((subs ?? []).map((s) => [s.exercise_id, s]));
   const passedExerciseIds = new Set((subs ?? []).filter((s) => s.passed === true).map((s) => s.exercise_id));
 
   // Unified completion — the gate that opens the next lesson.
@@ -214,7 +216,7 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
       {/* File-upload submission tasks — available once video marked complete */}
       {fileExercises.length > 0 && isCompleted && fileExercises.map((ex) => {
         const content = ex.content_json as FileUploadExercise;
-        const existing = fileSubMap.get(ex.id);
+        const existing = submissionMap.get(ex.id);
         return (
           <Card key={ex.id}>
             <CardContent className="pt-5 pb-5 space-y-3">
@@ -234,6 +236,33 @@ export default async function LessonPage({ params, searchParams }: LessonPagePro
         <Card className="opacity-60">
           <CardContent className="pt-5 pb-5">
             <p className="text-sm text-muted-foreground">סמן את הצפייה בשיעור כהושלמה כדי לפתוח את משימת ההגשה</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Text-answer submission tasks — available once video marked complete */}
+      {textExercises.length > 0 && isCompleted && textExercises.map((ex) => {
+        const content = ex.content_json as TextAnswerExercise;
+        const existing = submissionMap.get(ex.id);
+        return (
+          <Card key={ex.id}>
+            <CardContent className="pt-5 pb-5 space-y-3">
+              <p className="font-semibold text-sm">משימת כתיבה</p>
+              <TextAnswerExerciseClient
+                exerciseId={ex.id}
+                lessonId={id}
+                content={content}
+                existing={existing ? { count: 1, passed: existing.passed } : null}
+                nextLessonId={nextLesson?.id ?? null}
+              />
+            </CardContent>
+          </Card>
+        );
+      })}
+      {textExercises.length > 0 && !isCompleted && (
+        <Card className="opacity-60">
+          <CardContent className="pt-5 pb-5">
+            <p className="text-sm text-muted-foreground">סמן את הצפייה בשיעור כהושלמה כדי לפתוח את משימת הכתיבה</p>
           </CardContent>
         </Card>
       )}

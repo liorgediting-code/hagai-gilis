@@ -58,6 +58,10 @@ export default async function AdminExercisesPage() {
             <PlusIcon className="size-4" aria-hidden="true" />
             תרגיל העלאת קובץ
           </Link>
+          <Link href="/admin/exercises/text/new" className={buttonVariants({ variant: "outline", className: "min-h-11 h-11 px-4 gap-1.5" })}>
+            <PlusIcon className="size-4" aria-hidden="true" />
+            תרגיל כתיבה
+          </Link>
         </div>
       </div>
 
@@ -81,12 +85,13 @@ export default async function AdminExercisesPage() {
                       <span className="text-primary">
                         {ex.content_json?.type === "chart_click" ? "לחיצה על גרף" :
                          ex.content_json?.type === "multiple_choice" ? "שאלה אמריקאית" :
-                         ex.content_json?.type === "file_upload" ? "העלאת קובץ" : "ישן"}
+                         ex.content_json?.type === "file_upload" ? "העלאת קובץ" :
+                         ex.content_json?.type === "text_answer" ? "כתיבה" : "ישן"}
                       </span>
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    {ex.content_json?.type === "file_upload" && (
+                    {(ex.content_json?.type === "file_upload" || ex.content_json?.type === "text_answer") && (
                       <Link
                         href={`/admin/exercises/${ex.id}/submissions`}
                         className={buttonVariants({ variant: "outline", size: "sm" })}
@@ -97,6 +102,8 @@ export default async function AdminExercisesPage() {
                     <Link
                       href={ex.content_json?.type === "file_upload"
                         ? `/admin/exercises/file/${ex.id}/edit`
+                        : ex.content_json?.type === "text_answer"
+                        ? `/admin/exercises/text/${ex.id}/edit`
                         : `/admin/exercises/edit/${ex.id}`}
                       className={buttonVariants({ variant: "ghost", size: "sm" })}
                     >

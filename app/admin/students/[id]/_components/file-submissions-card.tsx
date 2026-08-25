@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReviewControls } from "@/app/admin/exercises/_components/review-controls";
-import type { FileUploadAnswer } from "@/lib/types/exercise-types";
+import type { FileUploadAnswer, TextAnswerAnswer } from "@/lib/types/exercise-types";
 
 type FileSubmission = {
   id: string;
@@ -26,18 +26,22 @@ function formatDate(iso: string): string {
 }
 
 export function FileSubmissionsCard({ submissions }: Props) {
-  const fileSubs = submissions.filter((s) => s.exercises.content_json?.type === "file_upload");
-  if (fileSubs.length === 0) return null;
+  const relevantSubs = submissions.filter(
+    (s) => s.exercises.content_json?.type === "file_upload" || s.exercises.content_json?.type === "text_answer",
+  );
+  if (relevantSubs.length === 0) return null;
 
   return (
     <Card>
       <CardHeader className="border-b border-border/50 pb-4">
-        <CardTitle className="text-base font-semibold">הגשות קבצים</CardTitle>
+        <CardTitle className="text-base font-semibold">הגשות קבצים וכתיבה</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <ul className="divide-y divide-border/30">
-          {fileSubs.map((s) => {
+          {relevantSubs.map((s) => {
+            const isText = s.exercises.content_json?.type === "text_answer";
             const files = (s.answer_data as FileUploadAnswer | null)?.files ?? [];
+            const text = (s.answer_data as TextAnswerAnswer | null)?.text ?? "";
             const label = s.passed === true ? "אושר" : s.passed === false ? "נדחה" : "ממתין לבדיקה";
             const cls = s.passed === true ? "text-primary" : s.passed === false ? "text-destructive" : "text-amber-500";
             return (
@@ -50,7 +54,7 @@ export function FileSubmissionsCard({ submissions }: Props) {
                     {s.exercises.title}
                   </Link>
                   <p className="text-xs text-muted-foreground">
-                    {files.length} קבצים · {formatDate(s.submitted_at)}
+                    {isText ? `${text.length} תווים` : `${files.length} קבצים`} · {formatDate(s.submitted_at)}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
